@@ -71,7 +71,7 @@ body {
       rgba(0, 0, 0, 0.45),
       rgba(0, 0, 0, 0.65)
     ),
-    url("background2.jpg");
+    url("background2.png");
 
   background-size: cover;
   background-position: center;

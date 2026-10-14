@@ -59,25 +59,25 @@ body {
 /* =========================================================
    ゲーム画面
 ========================================================= */
-
 #gameScreen {
-
   z-index: 1;
 
   display: flex;
-
   justify-content: center;
   align-items: center;
 
-  background:
-    radial-gradient(
-      circle at center,
-      #252525 0%,
-      #111 55%,
-      #050505 100%
-    );
-}
+  background-image:
+    linear-gradient(
+      rgba(0, 0, 0, 0.45),
+      rgba(0, 0, 0, 0.65)
+    ),
+    url("background2.jpg");
 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #050505;
+}
 
 /* =========================================================
    タイマー

@@ -1,16 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
   <meta charset="UTF-8">
-
   <meta
     name="viewport"
-    content="width=device-width,
-             initial-scale=1.0,
-             maximum-scale=1.0,
-             user-scalable=no,
-             viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
   >
 
   <title>脱出ゲーム</title>
@@ -20,16 +15,23 @@
 
 <body>
 
-  <!-- ==================================================
-       ゲーム画面
-  =================================================== -->
-
+  <!-- ==============================
+       カウントダウン画面
+  ============================== -->
   <main id="gameScreen" class="screen">
 
     <!-- タイマー -->
-    <div id="timer">
-      12:00
-    </div>
+    <div id="timer">12:00</div>
+
+    <!-- 画像ボタン
+         位置とサイズはstyle.cssで指定 -->
+    <button
+      id="imageButton"
+      type="button"
+      aria-label="画像ボタン"
+    >
+      <img src="botton.png" alt="">
+    </button>
 
     <!-- エピローグをもう一度見る -->
     <button
@@ -42,10 +44,9 @@
   </main>
 
 
-  <!-- ==================================================
+  <!-- ==============================
        エピローグ画面
-  =================================================== -->
-
+  ============================== -->
   <section
     id="epilogueScreen"
     class="screen"
@@ -56,13 +57,10 @@
       ― EPILOGUE ―
     </div>
 
-
     <!-- 文章表示領域 -->
     <div id="epilogueViewport">
 
-      <div id="epilogueText">
-
-主人公は、今大学4年生で、社会系の研究室で活動を行っている。
+      <div id="epilogueText">主人公は、今大学4年生で、社会系の研究室で活動を行っている。
 
 その研究室は6人在籍しており、個々で将来がかかった大きな研究をしている。
 
@@ -76,18 +74,14 @@
 
 主人公は、研究発表会を成功させることができるのか？
 
-プレイヤーは、研究室に残された様々な仕掛けを元にミッションをクリアしよう！
-
-      </div>
+プレイヤーは、研究室に残された様々な仕掛けを元にミッションをクリアしよう！</div>
 
     </div>
-
 
     <!-- スキップ案内 -->
     <div id="skipHint">
       タップするとエピローグをスキップできます
     </div>
-
 
     <!-- スキップボタン -->
     <button
@@ -98,7 +92,6 @@
     </button>
 
   </section>
-
 
   <!-- JavaScript -->
   <script src="script.js"></script>

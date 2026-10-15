@@ -5,13 +5,11 @@
 
 * {
   box-sizing: border-box;
-
   -webkit-tap-highlight-color: transparent;
 }
 
 html,
 body {
-
   width: 100%;
   height: 100%;
 
@@ -21,7 +19,6 @@ body {
   overflow: hidden;
 
   background: #000;
-
   color: #fff;
 
   font-family:
@@ -38,33 +35,42 @@ body {
   position: relative;
 }
 
+button {
+  font-family: inherit;
+}
+
 
 /* =========================================================
    共通画面
 ========================================================= */
 
 .screen {
-
   position: fixed;
-
   inset: 0;
 
   width: 100%;
   height: 100%;
+
+  height: 100dvh;
 
   overflow: hidden;
 }
 
 
 /* =========================================================
-   ゲーム画面
+   カウントダウン画面
+   背景画像：background2.jpg
 ========================================================= */
+
 #gameScreen {
   z-index: 1;
 
   display: flex;
+
   justify-content: center;
   align-items: center;
+
+  background-color: #050505;
 
   background-image:
     linear-gradient(
@@ -76,26 +82,20 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-color: #050505;
 }
+
 
 /* =========================================================
    タイマー
 ========================================================= */
 
 #timer {
+  position: relative;
+  z-index: 2;
 
-  font-family:
-    "Courier New",
-    monospace;
+  font-family: "Courier New", monospace;
 
-  font-size:
-    clamp(
-      80px,
-      18vw,
-      190px
-    );
-
+  font-size: clamp(80px, 18vw, 190px);
   font-weight: 400;
 
   letter-spacing: 0.05em;
@@ -103,8 +103,7 @@ body {
   color: #fff;
 
   text-shadow:
-    0 0 20px
-    rgba(255,255,255,0.15);
+    0 0 20px rgba(255, 255, 255, 0.15);
 
   user-select: none;
 
@@ -119,29 +118,20 @@ body {
 ========================================================= */
 
 #timer.warning {
-
   color: #ffcc66;
 
   animation:
-    timerWarning 1s
-    ease-in-out
-    infinite;
+    timerWarning 1s ease-in-out infinite;
 }
 
-
 @keyframes timerWarning {
-
   0%,
   100% {
-
-    transform:
-      scale(1);
+    transform: scale(1);
   }
 
   50% {
-
-    transform:
-      scale(1.03);
+    transform: scale(1.03);
   }
 }
 
@@ -151,40 +141,152 @@ body {
 ========================================================= */
 
 #timer.timeup {
-
   color: #ff5555;
 
   animation:
-    timeupAnimation
-    0.8s
-    ease-in-out
-    infinite;
+    timeupAnimation 0.8s ease-in-out infinite;
 }
 
-
 @keyframes timeupAnimation {
-
   0%,
   100% {
-
-    transform:
-      scale(1);
+    transform: scale(1);
   }
 
   50% {
-
-    transform:
-      scale(1.05);
+    transform: scale(1.05);
   }
 }
 
 
 /* =========================================================
+   画像ボタン
+   座標は画面の左上が (0, 0)
+========================================================= */
+
+#imageButton {
+  position: fixed;
+
+  /* ===== 座標設定 ===== */
+  left: 100px;
+  top: 200px;
+
+  /* ===== サイズ設定 ===== */
+  width: 150px;
+  height: 150px;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
+  border-radius: 0;
+
+  background: transparent;
+
+  z-index: 50;
+
+  cursor: pointer;
+  touch-action: manipulation;
+
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+
+/* =========================================================
+   画像ボタン：小型・背景になじませる
+========================================================= */
+
+#imageButton {
+  position: fixed;
+
+  /* 座標 */
+  left: 400px;
+  top: 100px;
+
+  /* サイズ */
+  width: 75px;
+  height: 75px;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
+  border-radius: 0;
+  background: transparent;
+
+  z-index: 50;
+
+  cursor: pointer;
+  touch-action: manipulation;
+
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* 画像を暗くして背景になじませる */
+
+/* 背景画像の上に配置するボタン */
+#imageButton {
+  position: absolute;
+
+  /* 背景画像の左上からの割合 */
+  left: 48%;
+  top: 42%;
+
+  /* ボタンの大きさ */
+  width: 75px;
+  height: 75px;
+
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+
+  z-index: 50;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ボタン画像 */
+#imageButton img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  /* 背景になじませる */
+  filter: brightness(0.35);
+  opacity: 0.65;
+
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+
+  transition: transform 0.15s ease;
+}
+
+#imageButton:active img {
+  transform: scale(0.95);
+}
+
+/* キーボード操作時 */
+#imageButton:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+
+
+/* =========================================================
    エピローグ画面
+   背景画像：background.jpg
 ========================================================= */
 
 #epilogueScreen {
-
   z-index: 10;
 
   display: flex;
@@ -194,30 +296,19 @@ body {
 
   background-color: #111;
 
-  /*
-    背景画像
-
-    index.htmlと同じフォルダに
-    background.jpgを置いてください。
-  */
-
   background-image:
-
     linear-gradient(
       rgba(0, 0, 0, 0.58),
       rgba(0, 0, 0, 0.72)
     ),
-
     url("background.jpg");
 
   background-size: cover;
-
   background-position: center;
+  background-repeat: no-repeat;
 
   transition:
-
     opacity 1s ease,
-
     visibility 1s ease;
 }
 
@@ -227,25 +318,17 @@ body {
 ========================================================= */
 
 #epilogueScreen::before {
-
   content: "";
 
   position: absolute;
-
   inset: -5%;
 
   background:
-
     radial-gradient(
       circle at center,
-
       transparent 0%,
-
-      rgba(0, 0, 0, 0.15)
-      45%,
-
-      rgba(0, 0, 0, 0.65)
-      100%
+      rgba(0, 0, 0, 0.15) 45%,
+      rgba(0, 0, 0, 0.65) 100%
     );
 
   pointer-events: none;
@@ -257,11 +340,9 @@ body {
 ========================================================= */
 
 #epilogueTitle {
-
   position: absolute;
 
   top: 7vh;
-
   left: 0;
   right: 0;
 
@@ -269,32 +350,20 @@ body {
 
   z-index: 5;
 
-  font-size:
-    clamp(
-      18px,
-      2.5vw,
-      28px
-    );
-
-  letter-spacing:
-    0.3em;
+  font-size: clamp(18px, 2.5vw, 28px);
+  letter-spacing: 0.3em;
 
   opacity: 0.8;
 
-  animation:
-    titleFade 2s ease;
+  animation: titleFade 2s ease;
 }
 
-
 @keyframes titleFade {
-
   from {
-
     opacity: 0;
   }
 
   to {
-
     opacity: 0.8;
   }
 }
@@ -305,12 +374,9 @@ body {
 ========================================================= */
 
 #epilogueViewport {
-
   position: relative;
 
-  width:
-    min(900px, 88vw);
-
+  width: min(900px, 88vw);
   height: 100%;
 
   overflow: hidden;
@@ -324,7 +390,6 @@ body {
 ========================================================= */
 
 #epilogueText {
-
   position: absolute;
 
   left: 0;
@@ -332,42 +397,22 @@ body {
 
   top: 100%;
 
-  padding:
-
-    30vh
-    4vw
-    30vh;
+  padding: 30vh 4vw;
 
   text-align: center;
 
-  font-size:
-    clamp(
-      20px,
-      3vw,
-      34px
-    );
-
+  font-size: clamp(20px, 3vw, 34px);
   line-height: 2.4;
-
-  letter-spacing:
-    0.12em;
+  letter-spacing: 0.12em;
 
   white-space: pre-line;
 
   text-shadow:
-
-    0 2px 8px
-    rgba(0,0,0,0.9),
-
-    0 0 20px
-    rgba(0,0,0,0.7);
+    0 2px 8px rgba(0, 0, 0, 0.9),
+    0 0 20px rgba(0, 0, 0, 0.7);
 
   animation:
-
-    epilogueScroll
-    35s
-    linear
-    forwards;
+    epilogueScroll 35s linear forwards;
 }
 
 
@@ -376,17 +421,12 @@ body {
 ========================================================= */
 
 @keyframes epilogueScroll {
-
   0% {
-
-    transform:
-      translateY(0);
+    transform: translateY(0);
   }
 
   100% {
-
-    transform:
-      translateY(-250%);
+    transform: translateY(-250%);
   }
 }
 
@@ -396,15 +436,10 @@ body {
 ========================================================= */
 
 #skipHint {
-
   position: absolute;
 
   bottom:
-
-    calc(
-      4vh +
-      env(safe-area-inset-bottom)
-    );
+    calc(4vh + env(safe-area-inset-bottom));
 
   left: 0;
   right: 0;
@@ -414,121 +449,77 @@ body {
   z-index: 20;
 
   font-size: 14px;
+  letter-spacing: 0.15em;
 
-  letter-spacing:
-    0.15em;
+  color: rgba(255, 255, 255, 0.65);
 
-  color:
-    rgba(255,255,255,0.55);
+  pointer-events: none;
 
   animation:
-    hintBlink
-    2s
-    ease-in-out
-    infinite;
+    hintBlink 2s ease-in-out infinite;
 }
 
-
 @keyframes hintBlink {
-
   0%,
   100% {
-
     opacity: 0.35;
   }
 
   50% {
-
     opacity: 0.8;
   }
 }
 
 
 /* =========================================================
-   エピローグボタン
+   エピローグ再表示ボタン
 ========================================================= */
 
 #epilogueButton {
-
   position: fixed;
 
   right:
-
-    calc(
-      24px +
-      env(safe-area-inset-right)
-    );
+    calc(24px + env(safe-area-inset-right));
 
   bottom:
-
-    calc(
-      24px +
-      env(safe-area-inset-bottom)
-    );
+    calc(24px + env(safe-area-inset-bottom));
 
   z-index: 100;
 
   min-width: 150px;
-
   min-height: 58px;
 
-  padding:
-    14px 24px;
+  padding: 14px 24px;
 
-  border:
-    1px solid
-    rgba(255,255,255,0.45);
-
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 10px;
 
-  background:
-    rgba(20,20,20,0.78);
-
+  background: rgba(20, 20, 20, 0.78);
   color: #fff;
 
-  font-family: inherit;
-
   font-size: 17px;
-
-  letter-spacing:
-    0.1em;
+  letter-spacing: 0.1em;
 
   cursor: pointer;
 
-  backdrop-filter:
-    blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 
-  -webkit-backdrop-filter:
-    blur(8px);
-
-  box-shadow:
-    0 4px 20px
-    rgba(0,0,0,0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 
   transition:
-
     transform 0.2s ease,
-
     background 0.2s ease,
-
     border-color 0.2s ease;
 }
 
-
 #epilogueButton:hover {
-
-  background:
-    rgba(60,60,60,0.85);
-
-  border-color:
-    rgba(255,255,255,0.8);
+  background: rgba(60, 60, 60, 0.85);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
-
 #epilogueButton:active {
-
-  transform:
-    scale(0.94);
+  transform: scale(0.94);
 }
 
 
@@ -537,57 +528,38 @@ body {
 ========================================================= */
 
 #closeEpilogueButton {
-
   position: absolute;
 
   right:
-
-    calc(
-      24px +
-      env(safe-area-inset-right)
-    );
+    calc(24px + env(safe-area-inset-right));
 
   bottom:
-
-    calc(
-      24px +
-      env(safe-area-inset-bottom)
-    );
+    calc(24px + env(safe-area-inset-bottom));
 
   z-index: 30;
 
   min-width: 150px;
-
   min-height: 58px;
 
-  padding:
-    14px 24px;
+  padding: 14px 24px;
 
-  border:
-    1px solid
-    rgba(255,255,255,0.45);
-
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 10px;
 
-  background:
-    rgba(20,20,20,0.75);
-
+  background: rgba(20, 20, 20, 0.75);
   color: #fff;
 
-  font-family: inherit;
-
   font-size: 17px;
-
-  letter-spacing:
-    0.1em;
+  letter-spacing: 0.1em;
 
   cursor: pointer;
 
-  backdrop-filter:
-    blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
 
-  -webkit-backdrop-filter:
-    blur(8px);
+#closeEpilogueButton:active {
+  transform: scale(0.94);
 }
 
 
@@ -596,11 +568,8 @@ body {
 ========================================================= */
 
 #epilogueScreen.hidden {
-
   opacity: 0;
-
   visibility: hidden;
-
   pointer-events: none;
 }
 
@@ -610,46 +579,23 @@ body {
 ========================================================= */
 
 @media (orientation: portrait) {
-
   #epilogueText {
-
     width: 92%;
-
     margin: auto;
 
-    font-size:
-      clamp(
-        19px,
-        5vw,
-        30px
-      );
-
+    font-size: clamp(19px, 5vw, 30px);
     line-height: 2.3;
 
-    padding:
-
-      35vh
-      3vw
-      35vh;
+    padding: 35vh 3vw;
   }
-
 
   #timer {
-
-    font-size:
-      clamp(
-        70px,
-        20vw,
-        140px
-      );
+    font-size: clamp(70px, 20vw, 140px);
   }
-
 
   #epilogueButton,
   #closeEpilogueButton {
-
     min-width: 135px;
-
     min-height: 54px;
 
     font-size: 16px;
@@ -662,17 +608,10 @@ body {
 ========================================================= */
 
 @media (orientation: landscape) {
-
   #epilogueText {
-
     max-width: 900px;
 
-    font-size:
-      clamp(
-        20px,
-        3vw,
-        34px
-      );
+    font-size: clamp(20px, 3vw, 34px);
   }
 }
 
@@ -682,17 +621,39 @@ body {
 ========================================================= */
 
 @media (max-width: 600px) {
-
   #epilogueButton,
   #closeEpilogueButton {
-
     min-width: 120px;
-
     min-height: 50px;
 
-    padding:
-      10px 16px;
-
+    padding: 10px 16px;
     font-size: 14px;
+  }
+}
+
+
+/* =========================================================
+   画面が低い場合
+========================================================= */
+
+@media (max-height: 500px) {
+  #epilogueTitle {
+    top: 3vh;
+  }
+
+  #epilogueText {
+    padding-top: 15vh;
+    padding-bottom: 15vh;
+  }
+}
+
+
+/* =========================================================
+   動きを減らす設定が有効な端末
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  #imageButton img {
+    transition: none;
   }
 }

@@ -5,8 +5,8 @@
 
 /* 設定 */
 
-const GAME_TIME = 12 * 60;
-const EPILOGUE_DURATION = 35000;
+const GAME_TIME = 10 * 60;
+const EPILOGUE_DURATION = 45000;
 
 
 /* HTML要素 */
@@ -179,7 +179,7 @@ if (SpeechRecognitionAPI) {
   recognition = new SpeechRecognitionAPI();
 
   // USBを英語の略語として認識させる
-  recognition.lang = "en-US";
+  recognition.lang = "jp-US";
   recognition.continuous = true;
   recognition.interimResults = true;
   recognition.maxAlternatives = 3;

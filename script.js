@@ -1,108 +1,66 @@
-"use strict";
 
-/* ========================================
-   設定
-======================================== */
+/* =========================================================
+   脱出ゲーム メインJavaScript
+========================================================= */
 
-// 制限時間：10分
+/* 設定 */
+
 const GAME_TIME = 10 * 60;
-
-// エピローグのスクロール時間：60秒
-const EPILOGUE_DURATION = 60000;
-
-// エピローグ自動終了までの時間
-const EPILOGUE_AUTO_CLOSE = 60000;
+const EPILOGUE_DURATION = 45000;
 
 
-/* ========================================
-   エピローグ1の文章
-======================================== */
-
-// 以前のエピローグ1の本文がある場合は、
-// 下の文章を以前の本文に置き換えてください。
-const epilogue1Text = `
-ここにエピローグ1の本文を入れてください。
-`;
-
-
-/* ========================================
-   エピローグ2の文章
-======================================== */
-
-const epilogue2Text = `
-結果、それらを隠したのは同じゼミ生の一人だった。
-
-理由はその研究結果を後日自分だけの名義で発表して自分の手柄にするためであった。
-
-ただ、見つかったUSBは主人公のUSBの他に、ゼミ生全員分のUSBも混在していた。
-
-また、PCのパスワードも変更されていた。
-
-プレイヤーは、正しいUSBと正しいパスワードを導き出し、PC内に回答しよう！
-`;
-
-
-/* ========================================
-   HTML要素
-======================================== */
+/* HTML要素 */
 
 const gameScreen = document.getElementById("gameScreen");
+const epilogueScreen = document.getElementById("epilogueScreen");
+const epilogueText = document.getElementById("epilogueText");
 const timerElement = document.getElementById("timer");
-
+const epilogueButton = document.getElementById("epilogueButton");
+const closeEpilogueButton =
+  document.getElementById("closeEpilogueButton");
 const imageButton = document.getElementById("imageButton");
 const voiceResult = document.getElementById("voiceResult");
 
-const epilogueButton = document.getElementById("epilogueButton");
-const epilogueScreen = document.getElementById("epilogueScreen");
-const epilogueTitle = document.getElementById("epilogueTitle");
-const epilogueText = document.getElementById("epilogueText");
-const epilogueViewport = document.getElementById("epilogueViewport");
 
-const epilogue2Button = document.getElementById("epilogue2Button");
-const closeEpilogueButton =
-  document.getElementById("closeEpilogueButton");
-const skipHint = document.getElementById("skipHint");
-
-
-/* ========================================
-   タイマー
-======================================== */
+/* タイマー状態 */
 
 let remainingTime = GAME_TIME;
-let timerInterval = null;
 let timerStarted = false;
-let timerFinished = false;
+let timerInterval = null;
+let epilogueOpen = false;
+let epilogueTimeout = null;
 
-function formatTime(seconds) {
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
 
-  return (
-    String(minutes).padStart(2, "0") +
-    ":" +
-    String(secs).padStart(2, "0")
-  );
-}
+/* タイマー表示 */
 
 function updateTimer() {
-  if (!timerElement) return;
+  remainingTime = Math.max(0, remainingTime);
 
-  timerElement.textContent = formatTime(remainingTime);
+  const minutes = Math.floor(remainingTime / 60);
+  const seconds = remainingTime % 60;
 
-  timerElement.classList.remove("warning", "timeup");
+  timerElement.textContent =
+    `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+  timerElement.classList.remove("warning");
 
   if (remainingTime <= 60 && remainingTime > 0) {
     timerElement.classList.add("warning");
   }
 
-  if (remainingTime <= 0) {
-    timerElement.textContent = "00:00";
+  if (remainingTime === 0) {
+    timerElement.classList.remove("warning");
     timerElement.classList.add("timeup");
+    stopTimer();
+    console.log("制限時間終了");
   }
 }
 
+
+/* タイマー開始 */
+
 function startTimer() {
-  if (timerStarted || timerFinished) return;
+  if (timerStarted) return;
 
   timerStarted = true;
   updateTimer();
@@ -111,16 +69,14 @@ function startTimer() {
     if (remainingTime > 0) {
       remainingTime--;
       updateTimer();
-    }
-
-    if (remainingTime <= 0) {
+    } else {
       stopTimer();
-      timerFinished = true;
-      timerElement.textContent = "00:00";
-      timerElement.classList.add("timeup");
     }
   }, 1000);
 }
+
+
+/* タイマー停止 */
 
 function stopTimer() {
   if (timerInterval !== null) {
@@ -130,385 +86,293 @@ function stopTimer() {
 }
 
 
-/* ========================================
-   エピローグ
-======================================== */
+/* エピローグ表示 */
 
-let epilogueOpen = false;
-let epilogueAutoCloseTimeout = null;
-
-function clearEpilogueAutoClose() {
-  if (epilogueAutoCloseTimeout !== null) {
-    clearTimeout(epilogueAutoCloseTimeout);
-    epilogueAutoCloseTimeout = null;
+function showEpilogue() {
+  if (epilogueTimeout !== null) {
+    clearTimeout(epilogueTimeout);
+    epilogueTimeout = null;
   }
-}
 
-function showEpilogue(title, content) {
-  clearEpilogueAutoClose();
-
+  // 音声認識中なら停止
   stopVoiceRecognition();
 
+  epilogueScreen.classList.remove("hidden");
   epilogueOpen = true;
 
-  gameScreen.classList.add("hidden");
-  epilogueScreen.classList.remove("hidden");
+  epilogueText.style.animation = "none";
+  void epilogueText.offsetWidth;
 
-  epilogueTitle.textContent = title;
-  epilogueText.textContent = content;
+  epilogueText.style.animation =
+    "epilogueScroll 35s linear forwards";
 
-  // スクロールアニメーションを最初からやり直す
-  epilogueText.classList.remove("scrolling");
-
-  // アニメーションを確実に再起動する
-  void epilogueText.offsetHeight;
-
-  epilogueText.style.animationDuration =
-    `${EPILOGUE_DURATION / 1000}s`;
-
-  epilogueText.classList.add("scrolling");
-
-  // エピローグ1は自動で閉じる。
-  // エピローグ2は文章を読み終える時間を確保し、
-  // 自動では閉じない。
-  if (title === "EPILOGUE") {
-    epilogueAutoCloseTimeout = setTimeout(() => {
+  epilogueTimeout = setTimeout(() => {
+    if (epilogueOpen) {
       closeEpilogue();
-    }, EPILOGUE_AUTO_CLOSE);
-  }
+    }
+  }, EPILOGUE_DURATION);
 }
 
-function showEpilogue1() {
-  showEpilogue("EPILOGUE", epilogue1Text);
-}
 
-function showEpilogue2() {
-  // エピローグ2を表示している間は自動で閉じない
-  clearEpilogueAutoClose();
-  showEpilogue("EPILOGUE 2", epilogue2Text);
-}
+/* エピローグ終了 */
 
 function closeEpilogue() {
-  clearEpilogueAutoClose();
+  if (!epilogueOpen) return;
 
   epilogueOpen = false;
 
-  epilogueScreen.classList.add("hidden");
-  gameScreen.classList.remove("hidden");
+  if (epilogueTimeout !== null) {
+    clearTimeout(epilogueTimeout);
+    epilogueTimeout = null;
+  }
 
-  // エピローグを閉じた最初のタイミングでタイマー開始
+  epilogueScreen.classList.add("hidden");
   startTimer();
 }
 
 
-/* ========================================
-   エピローグのボタン
-======================================== */
+/* エピローグ再表示 */
 
-if (epilogueButton) {
-  epilogueButton.addEventListener("click", (event) => {
-    event.stopPropagation();
-    showEpilogue1();
-  });
-}
+epilogueButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  showEpilogue();
+});
 
-if (epilogue2Button) {
-  epilogue2Button.addEventListener("click", (event) => {
-    event.stopPropagation();
-    showEpilogue2();
-  });
-}
 
-if (closeEpilogueButton) {
-  closeEpilogueButton.addEventListener("click", (event) => {
-    event.stopPropagation();
+/* スキップボタン */
+
+closeEpilogueButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  closeEpilogue();
+});
+
+
+/* エピローグ画面のタップでスキップ */
+
+epilogueScreen.addEventListener("click", (event) => {
+  if (closeEpilogueButton.contains(event.target)) return;
+
+  if (epilogueOpen) {
     closeEpilogue();
-  });
-}
-
-// エピローグ画面の背景をタップすると閉じる。
-// ボタンや文章部分を押した場合は閉じない。
-if (epilogueScreen) {
-  epilogueScreen.addEventListener("click", (event) => {
-    if (
-      event.target === epilogueScreen ||
-      event.target === epilogueViewport
-    ) {
-      closeEpilogue();
-    }
-  });
-}
+  }
+});
 
 
-/* ========================================
-   音声認識
-======================================== */
+/* =========================================================
+   鍵ボタン：音声認識
+========================================================= */
 
+// SafariやChromeが提供する音声認識APIを取得
 const SpeechRecognitionAPI =
   window.SpeechRecognition ||
   window.webkitSpeechRecognition;
 
 let recognition = null;
-let recognitionRunning = false;
 let isHoldingKey = false;
-let recognitionRestartTimeout = null;
-let voiceRecognitionUnavailable = false;
+let recognitionRunning = false;
+let recognitionRestartTimer = null;
 
-function showVoiceMessage(message) {
-  if (!voiceResult) return;
 
-  voiceResult.textContent = message;
+/* 音声認識の準備 */
 
-  if (message) {
-    voiceResult.classList.add("visible");
-  } else {
-    voiceResult.classList.remove("visible");
+if (SpeechRecognitionAPI) {
+  recognition = new SpeechRecognitionAPI();
+
+  // USBを英語の略語として認識させる
+  recognition.lang = "jp-US";
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 3;
+
+  /* 認識結果 */
+
+  recognition.onresult = (event) => {
+    if (!isHoldingKey) return;
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
+
+      // 候補を順番に確認
+      for (let j = 0; j < result.length; j++) {
+        const transcript = result[j].transcript
+          .trim()
+          .toUpperCase();
+
+        console.log("音声認識結果:", transcript);
+
+        // 句読点を取り除いて判定
+        const normalized = transcript
+          .replace(/[.,!?]/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const recognizedUSB =
+          /\bUSB\b/.test(normalized) ||
+          /\bU\s+S\s+B\b/.test(normalized);
+
+        if (recognizedUSB) {
+          voiceResult.textContent = "USB";
+
+          // 正解を認識したら停止
+          isHoldingKey = false;
+          stopVoiceRecognition();
+
+          console.log("USBを認識しました");
+          return;
+        }
+      }
+    }
+  };
+
+  /* 音声認識エラー */
+
+  recognition.onerror = (event) => {
+    console.log("音声認識エラー:", event.error);
+
+    if (
+      event.error === "not-allowed" ||
+      event.error === "service-not-allowed"
+    ) {
+      voiceResult.textContent = "マイクを許可してください";
+      isHoldingKey = false;
+    } else if (event.error === "no-speech") {
+      console.log("音声が検出されませんでした");
+    } else if (event.error === "network") {
+      console.log("音声認識サービスへの接続に失敗しました");
+    }
+  };
+
+  /* 認識終了時 */
+
+  recognition.onend = () => {
+    recognitionRunning = false;
+
+    if (recognitionRestartTimer !== null) {
+      clearTimeout(recognitionRestartTimer);
+      recognitionRestartTimer = null;
+    }
+
+    // ボタンを押し続けている間だけ再開
+    if (isHoldingKey && !epilogueOpen) {
+      recognitionRestartTimer = setTimeout(() => {
+        recognitionRestartTimer = null;
+        startVoiceRecognition();
+      }, 200);
+    }
+  };
+
+} else {
+  console.warn(
+    "このブラウザはWeb Speech APIに対応していません。"
+  );
+}
+
+
+/* 音声認識開始 */
+
+function startVoiceRecognition() {
+  if (!recognition) return;
+  if (!isHoldingKey || epilogueOpen) return;
+  if (recognitionRunning) return;
+
+  try {
+    recognitionRunning = true;
+    recognition.start();
+  } catch (error) {
+    recognitionRunning = false;
+    console.log("音声認識を開始できません:", error);
   }
 }
 
-function clearRecognitionRestartTimeout() {
-  if (recognitionRestartTimeout !== null) {
-    clearTimeout(recognitionRestartTimeout);
-    recognitionRestartTimeout = null;
-  }
-}
+
+/* 音声認識停止 */
 
 function stopVoiceRecognition() {
   isHoldingKey = false;
-  clearRecognitionRestartTimeout();
+
+  if (recognitionRestartTimer !== null) {
+    clearTimeout(recognitionRestartTimer);
+    recognitionRestartTimer = null;
+  }
 
   if (recognition && recognitionRunning) {
     try {
       recognition.stop();
     } catch (error) {
-      console.log("音声認識の停止:", error);
+      console.log("音声認識停止時のエラー:", error);
     }
   }
-
-  // 聞き取り中の文字は表示しない
 }
 
-function startVoiceRecognition() {
-  if (!SpeechRecognitionAPI) {
-    voiceRecognitionUnavailable = true;
-    showVoiceMessage("このブラウザでは音声認識を利用できません。");
+
+/* 鍵を押したとき */
+
+function handleKeyDown(event) {
+  if (epilogueOpen) return;
+
+  // マウス操作では左ボタンだけを受け付ける
+  if (event.button !== undefined && event.button !== 0) {
     return;
   }
 
-  if (epilogueOpen || timerFinished) {
-    return;
-  }
+  event.preventDefault();
 
-  if (recognitionRunning) {
-    return;
-  }
-
-  clearRecognitionRestartTimeout();
+  if (isHoldingKey) return;
 
   if (!recognition) {
-    recognition = new SpeechRecognitionAPI();
-
-    // USBという英語を認識しやすくする設定
-    recognition.lang = "en-US";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 3;
-
-    recognition.onstart = () => {
-      recognitionRunning = true;
-
-      // 「聞き取り中…」などの文字は表示しない
-      if (
-        voiceResult.textContent !==
-        "立ち入り禁止の看板をよく見ろ"
-      ) {
-        showVoiceMessage("");
-      }
-    };
-
-    recognition.onresult = (event) => {
-      for (
-        let i = event.resultIndex;
-        i < event.results.length;
-        i++
-      ) {
-        const result = event.results[i];
-
-        for (
-          let j = 0;
-          j < result.length;
-          j++
-        ) {
-          const transcript = result[j].transcript
-            .trim()
-            .toUpperCase()
-            .replace(/[.,!?。、！？]/g, " ");
-
-          // USB、U S B、U-S-Bなどを判定
-          const normalized = transcript
-            .replace(/[^A-Z0-9]/g, "");
-
-          const isUSB =
-            normalized.includes("USB") ||
-            /\bU\s*[- ]\s*S\s*[- ]\s*B\b/i.test(transcript);
-
-          if (isUSB) {
-            // 認識成功メッセージを表示
-            showVoiceMessage(
-              "立ち入り禁止の看板をよく見ろ"
-            );
-
-            // 認識後は音声認識を終了
-            isHoldingKey = false;
-            stopVoiceRecognition();
-
-            return;
-          }
-        }
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.log("音声認識エラー:", event.error);
-
-      if (
-        event.error === "not-allowed" ||
-        event.error === "service-not-allowed"
-      ) {
-        isHoldingKey = false;
-        showVoiceMessage("マイクの使用を許可してください。");
-      } else if (event.error === "audio-capture") {
-        isHoldingKey = false;
-        showVoiceMessage("マイクを利用できません。");
-      }
-
-      // 通常の無音や一時的なエラーでは
-      // 「聞き取り中」などを表示しない
-    };
-
-    recognition.onend = () => {
-      recognitionRunning = false;
-
-      // 押し続けている場合だけ再開を試みる
-      if (
-        isHoldingKey &&
-        !epilogueOpen &&
-        !timerFinished
-      ) {
-        clearRecognitionRestartTimeout();
-
-        recognitionRestartTimeout = setTimeout(() => {
-          if (
-            isHoldingKey &&
-            !epilogueOpen &&
-            !timerFinished
-          ) {
-            try {
-              recognition.start();
-            } catch (error) {
-              console.log("音声認識の再開:", error);
-            }
-          }
-        }, 250);
-      }
-    };
+    voiceResult.textContent = "音声認識に非対応";
+    return;
   }
-
-  try {
-    recognition.start();
-  } catch (error) {
-    console.log("音声認識の開始:", error);
-  }
-}
-
-
-/* ========================================
-   画像ボタンの長押し操作
-======================================== */
-
-function beginVoiceHold(event) {
-  if (event) {
-    event.preventDefault();
-  }
-
-  if (epilogueOpen || timerFinished) return;
-
-  // 認識成功メッセージを消してから再認識
-  showVoiceMessage("");
 
   isHoldingKey = true;
+  voiceResult.textContent = "聞き取り中…";
+
+  // start()はボタン操作から直接呼び出す
   startVoiceRecognition();
-}
 
-function endVoiceHold(event) {
-  if (event) {
-    event.preventDefault();
+  // 指がボタンから外れても離した操作を検出する
+  try {
+    imageButton.setPointerCapture(event.pointerId);
+  } catch (error) {
+    // 非対応の場合は無視
   }
+}
 
-  isHoldingKey = false;
-  clearRecognitionRestartTimeout();
 
-  if (recognition && recognitionRunning) {
-    try {
-      recognition.stop();
-    } catch (error) {
-      console.log("音声認識の停止:", error);
-    }
+/* 鍵を離したとき */
+
+function handleKeyUp(event) {
+  if (event) event.preventDefault();
+
+  if (!isHoldingKey) return;
+
+  stopVoiceRecognition();
+
+  // 正解表示は残し、それ以外は消す
+  if (voiceResult.textContent !== "USB") {
+    voiceResult.textContent = "";
   }
-
-  // 認識成功メッセージ以外は表示しない
-}
-
-if (imageButton) {
-  imageButton.addEventListener("pointerdown", (event) => {
-    beginVoiceHold(event);
-
-    try {
-      imageButton.setPointerCapture(event.pointerId);
-    } catch (error) {
-      // Pointer Capture非対応時は何もしない
-    }
-  });
-
-  imageButton.addEventListener("pointerup", endVoiceHold);
-  imageButton.addEventListener("pointercancel", endVoiceHold);
-  imageButton.addEventListener("lostpointercapture", () => {
-    isHoldingKey = false;
-  });
-
-  // 右クリックメニューなどを抑制
-  imageButton.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-  });
-
-  // キーボード操作にも対応
-  imageButton.addEventListener("keydown", (event) => {
-    if (
-      event.key === " " ||
-      event.key === "Enter"
-    ) {
-      if (!event.repeat) {
-        beginVoiceHold(event);
-      }
-    }
-  });
-
-  imageButton.addEventListener("keyup", (event) => {
-    if (
-      event.key === " " ||
-      event.key === "Enter"
-    ) {
-      endVoiceHold(event);
-    }
-  });
 }
 
 
-/* ========================================
-   画面操作の補助
-======================================== */
+/* マウス・タッチ・ペン操作 */
 
-// iPadなどでダブルタップによる拡大を抑制
+imageButton.addEventListener("pointerdown", handleKeyDown);
+imageButton.addEventListener("pointerup", handleKeyUp);
+imageButton.addEventListener("pointercancel", handleKeyUp);
+imageButton.addEventListener("lostpointercapture", handleKeyUp);
+
+
+/* ページ読み込み */
+
+window.addEventListener("load", () => {
+  updateTimer();
+  showEpilogue();
+});
+
+
+/* iPad向けダブルタップズーム防止 */
+
 let lastTouchEnd = 0;
 
 document.addEventListener(
@@ -525,25 +389,9 @@ document.addEventListener(
   { passive: false }
 );
 
-// 長押しメニューを抑制
+
+/* 長押しメニュー防止 */
+
 document.addEventListener("contextmenu", (event) => {
   event.preventDefault();
 });
-
-
-/* ========================================
-   起動時
-======================================== */
-
-function initializeGame() {
-  remainingTime = GAME_TIME;
-  timerStarted = false;
-  timerFinished = false;
-
-  updateTimer();
-
-  // ページを開いたら最初のエピローグを表示
-  showEpilogue1();
-}
-
-initializeGame();

@@ -1,564 +1,397 @@
-"use strict";
 
-/* ==============================
-   設定
-============================== */
+/* =========================================================
+   脱出ゲーム メインJavaScript
+========================================================= */
 
-// 制限時間：10分
-const TIME_LIMIT = 10 * 60;
+/* 設定 */
 
-// エピローグの表示時間：70秒
-// CSSのスクロール時間と合わせています
-const EPILOGUE_DURATION = 70 * 1000;
-
-// 音声認識の対応ブラウザ機能
-const SpeechRecognitionAPI =
-  window.SpeechRecognition ||
-  window.webkitSpeechRecognition;
+const GAME_TIME = 12 * 60;
+const EPILOGUE_DURATION = 35000;
 
 
-/* ==============================
-   HTML要素
-============================== */
+/* HTML要素 */
 
 const gameScreen = document.getElementById("gameScreen");
+const epilogueScreen = document.getElementById("epilogueScreen");
+const epilogueText = document.getElementById("epilogueText");
 const timerElement = document.getElementById("timer");
-
+const epilogueButton = document.getElementById("epilogueButton");
+const closeEpilogueButton =
+  document.getElementById("closeEpilogueButton");
 const imageButton = document.getElementById("imageButton");
 const voiceResult = document.getElementById("voiceResult");
 
-const epilogueButton = document.getElementById("epilogueButton");
-const epilogueScreen = document.getElementById("epilogueScreen");
-const epilogueText = document.getElementById("epilogueText");
-const closeEpilogueButton =
-  document.getElementById("closeEpilogueButton");
 
-const timeUpMessage = document.getElementById("timeUpMessage");
-const restartButton = document.getElementById("restartButton");
+/* タイマー状態 */
 
-
-/* ==============================
-   状態管理
-============================== */
-
-let remainingSeconds = TIME_LIMIT;
-let timerInterval = null;
+let remainingTime = GAME_TIME;
 let timerStarted = false;
-let gameFinished = false;
-
+let timerInterval = null;
 let epilogueOpen = false;
 let epilogueTimeout = null;
 
-let recognition = null;
-let recognitionRunning = false;
-let isHoldingKey = false;
-let recognizedUSB = false;
 
-let restartRecognitionTimeout = null;
+/* タイマー表示 */
 
+function updateTimer() {
+  remainingTime = Math.max(0, remainingTime);
 
-/* ==============================
-   カウントダウン
-============================== */
-
-function updateTimerDisplay() {
-  const minutes = Math.floor(remainingSeconds / 60);
-  const seconds = remainingSeconds % 60;
+  const minutes = Math.floor(remainingTime / 60);
+  const seconds = remainingTime % 60;
 
   timerElement.textContent =
-    String(minutes).padStart(2, "0") +
-    ":" +
-    String(seconds).padStart(2, "0");
+    `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-  if (remainingSeconds <= 60) {
+  timerElement.classList.remove("warning");
+
+  if (remainingTime <= 60 && remainingTime > 0) {
     timerElement.classList.add("warning");
-  } else {
+  }
+
+  if (remainingTime === 0) {
     timerElement.classList.remove("warning");
+    timerElement.classList.add("timeup");
+    stopTimer();
+    console.log("制限時間終了");
   }
 }
 
+
+/* タイマー開始 */
+
 function startTimer() {
-  if (timerStarted || gameFinished) {
-    return;
-  }
+  if (timerStarted) return;
 
   timerStarted = true;
+  updateTimer();
 
-  updateTimerDisplay();
-
-  timerInterval = window.setInterval(() => {
-    if (gameFinished) {
+  timerInterval = setInterval(() => {
+    if (remainingTime > 0) {
+      remainingTime--;
+      updateTimer();
+    } else {
       stopTimer();
-      return;
     }
-
-    remainingSeconds--;
-
-    if (remainingSeconds <= 0) {
-      remainingSeconds = 0;
-      updateTimerDisplay();
-      finishGame();
-      return;
-    }
-
-    updateTimerDisplay();
   }, 1000);
 }
 
+
+/* タイマー停止 */
+
 function stopTimer() {
   if (timerInterval !== null) {
-    window.clearInterval(timerInterval);
+    clearInterval(timerInterval);
     timerInterval = null;
   }
 }
 
-function finishGame() {
-  if (gameFinished) {
-    return;
-  }
 
-  gameFinished = true;
+/* エピローグ表示 */
 
-  stopTimer();
-  stopVoiceRecognition();
-
-  epilogueOpen = false;
-
+function showEpilogue() {
   if (epilogueTimeout !== null) {
-    window.clearTimeout(epilogueTimeout);
+    clearTimeout(epilogueTimeout);
     epilogueTimeout = null;
   }
 
-  epilogueScreen.classList.remove("active");
-  timeUpMessage.classList.remove("hidden");
-
-  imageButton.disabled = true;
-  epilogueButton.disabled = true;
-
-  voiceResult.textContent = "";
-}
-
-
-/* ==============================
-   エピローグ
-============================== */
-
-function showEpilogue() {
-  if (gameFinished) {
-    return;
-  }
-
-  // 音声認識を停止
+  // 音声認識中なら停止
   stopVoiceRecognition();
 
+  epilogueScreen.classList.remove("hidden");
   epilogueOpen = true;
 
-  // 表示中はゲーム画面を隠す
-  gameScreen.style.display = "none";
-
-  epilogueScreen.classList.add("active");
-
-  // スクロールアニメーションを最初から再生する
   epilogueText.style.animation = "none";
+  void epilogueText.offsetWidth;
 
-  // ブラウザにアニメーションのリセットを反映させる
-  void epilogueText.offsetHeight;
+  epilogueText.style.animation =
+    "epilogueScroll 35s linear forwards";
 
-  epilogueText.style.animation = "";
-
-  // 以前のタイマーを解除
-  if (epilogueTimeout !== null) {
-    window.clearTimeout(epilogueTimeout);
-  }
-
-  // 70秒後にエピローグを閉じる
-  epilogueTimeout = window.setTimeout(() => {
-    closeEpilogue();
+  epilogueTimeout = setTimeout(() => {
+    if (epilogueOpen) {
+      closeEpilogue();
+    }
   }, EPILOGUE_DURATION);
 }
 
+
+/* エピローグ終了 */
+
 function closeEpilogue() {
-  if (!epilogueOpen || gameFinished) {
-    return;
-  }
+  if (!epilogueOpen) return;
 
   epilogueOpen = false;
 
   if (epilogueTimeout !== null) {
-    window.clearTimeout(epilogueTimeout);
+    clearTimeout(epilogueTimeout);
     epilogueTimeout = null;
   }
 
-  epilogueScreen.classList.remove("active");
-  gameScreen.style.display = "";
-
-  // エピローグを閉じたタイミングで10分の計測を開始
+  epilogueScreen.classList.add("hidden");
   startTimer();
 }
 
-// エピローグをスキップ
+
+/* エピローグ再表示 */
+
+epilogueButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  showEpilogue();
+});
+
+
+/* スキップボタン */
+
 closeEpilogueButton.addEventListener("click", (event) => {
   event.stopPropagation();
   closeEpilogue();
 });
 
-// エピローグ再表示
-epilogueButton.addEventListener("click", () => {
-  showEpilogue();
-});
 
-// エピローグ画面をタップしてスキップ
+/* エピローグ画面のタップでスキップ */
+
 epilogueScreen.addEventListener("click", (event) => {
-  if (event.target === closeEpilogueButton) {
-    return;
-  }
+  if (closeEpilogueButton.contains(event.target)) return;
 
-  closeEpilogue();
+  if (epilogueOpen) {
+    closeEpilogue();
+  }
 });
 
 
-/* ==============================
-   音声認識の初期化
-============================== */
+/* =========================================================
+   鍵ボタン：音声認識
+========================================================= */
 
-function initializeSpeechRecognition() {
-  if (!SpeechRecognitionAPI) {
-    console.warn("このブラウザは音声認識に対応していません。");
-    return false;
-  }
+// SafariやChromeが提供する音声認識APIを取得
+const SpeechRecognitionAPI =
+  window.SpeechRecognition ||
+  window.webkitSpeechRecognition;
 
-  try {
-    recognition = new SpeechRecognitionAPI();
+let recognition = null;
+let isHoldingKey = false;
+let recognitionRunning = false;
+let recognitionRestartTimer = null;
 
-    // USBという英語を認識しやすくする
-    recognition.lang = "en-US";
 
-    // 音声を継続して聞き取る
-    recognition.continuous = true;
+/* 音声認識の準備 */
 
-    // 認識途中の結果も受け取る
-    recognition.interimResults = true;
+if (SpeechRecognitionAPI) {
+  recognition = new SpeechRecognitionAPI();
 
-    // 候補を複数受け取る
-    recognition.maxAlternatives = 3;
+  // USBを英語の略語として認識させる
+  recognition.lang = "en-US";
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 3;
 
-    recognition.onstart = () => {
-      recognitionRunning = true;
-      voiceResult.textContent = "聞き取り中…";
-    };
+  /* 認識結果 */
 
-    recognition.onresult = (event) => {
-      if (!isHoldingKey || epilogueOpen || gameFinished) {
-        return;
-      }
+  recognition.onresult = (event) => {
+    if (!isHoldingKey) return;
 
-      for (
-        let i = event.resultIndex;
-        i < event.results.length;
-        i++
-      ) {
-        const result = event.results[i];
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
 
-        for (let j = 0; j < result.length; j++) {
-          const transcript = result[j].transcript || "";
+      // 候補を順番に確認
+      for (let j = 0; j < result.length; j++) {
+        const transcript = result[j].transcript
+          .trim()
+          .toUpperCase();
 
-          console.log("音声認識結果:", transcript);
+        console.log("音声認識結果:", transcript);
 
-          if (containsUSB(transcript)) {
-            displayUSB();
-            return;
-          }
+        // 句読点を取り除いて判定
+        const normalized = transcript
+          .replace(/[.,!?]/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const recognizedUSB =
+          /\bUSB\b/.test(normalized) ||
+          /\bU\s+S\s+B\b/.test(normalized);
+
+        if (recognizedUSB) {
+          voiceResult.textContent = "USB";
+
+          // 正解を認識したら停止
+          isHoldingKey = false;
+          stopVoiceRecognition();
+
+          console.log("USBを認識しました");
+          return;
         }
       }
-    };
+    }
+  };
 
-    recognition.onerror = (event) => {
-      console.warn("音声認識エラー:", event.error);
+  /* 音声認識エラー */
 
-      if (
-        event.error === "not-allowed" ||
-        event.error === "service-not-allowed"
-      ) {
-        isHoldingKey = false;
-        imageButton.classList.remove("holding");
-        voiceResult.textContent = "マイクを許可してください";
-      } else if (event.error === "no-speech") {
-        // 無音の場合は、長押し中なら再開を試みる
-      } else if (event.error === "audio-capture") {
-        voiceResult.textContent = "マイクを利用できません";
-      } else if (event.error === "network") {
-        voiceResult.textContent = "音声認識の通信エラー";
-      }
-    };
+  recognition.onerror = (event) => {
+    console.log("音声認識エラー:", event.error);
 
-    recognition.onend = () => {
-      recognitionRunning = false;
+    if (
+      event.error === "not-allowed" ||
+      event.error === "service-not-allowed"
+    ) {
+      voiceResult.textContent = "マイクを許可してください";
+      isHoldingKey = false;
+    } else if (event.error === "no-speech") {
+      console.log("音声が検出されませんでした");
+    } else if (event.error === "network") {
+      console.log("音声認識サービスへの接続に失敗しました");
+    }
+  };
 
-      // 長押し中であれば、認識の再開を試みる
-      if (
-        isHoldingKey &&
-        !epilogueOpen &&
-        !gameFinished &&
-        !recognizedUSB
-      ) {
-        scheduleRecognitionRestart();
-      }
-    };
+  /* 認識終了時 */
 
-    return true;
-  } catch (error) {
-    console.error("音声認識の初期化に失敗しました:", error);
-    recognition = null;
-    return false;
-  }
+  recognition.onend = () => {
+    recognitionRunning = false;
+
+    if (recognitionRestartTimer !== null) {
+      clearTimeout(recognitionRestartTimer);
+      recognitionRestartTimer = null;
+    }
+
+    // ボタンを押し続けている間だけ再開
+    if (isHoldingKey && !epilogueOpen) {
+      recognitionRestartTimer = setTimeout(() => {
+        recognitionRestartTimer = null;
+        startVoiceRecognition();
+      }, 200);
+    }
+  };
+
+} else {
+  console.warn(
+    "このブラウザはWeb Speech APIに対応していません。"
+  );
 }
 
 
-/* ==============================
-   USBの判定
-============================== */
-
-function containsUSB(text) {
-  const normalized = String(text)
-    .toUpperCase()
-    .replace(/[‐‑‒–—―]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  // USBをひとまとまりの単語として認識
-  if (/\bUSB\b/.test(normalized)) {
-    return true;
-  }
-
-  // U S B のように1文字ずつ認識した場合
-  if (/\bU\s+S\s+B\b/.test(normalized)) {
-    return true;
-  }
-
-  // 認識結果が文字の間に空白を入れた場合にも対応
-  if (/\bU\s*S\s*B\b/.test(normalized)) {
-    return true;
-  }
-
-  return false;
-}
-
-function displayUSB() {
-  if (recognizedUSB || gameFinished || epilogueOpen) {
-    return;
-  }
-
-  recognizedUSB = true;
-  isHoldingKey = false;
-
-  imageButton.classList.remove("holding");
-
-  voiceResult.textContent = "USB";
-
-  // USBを認識したら音声認識を止める
-  stopVoiceRecognition();
-}
-
-
-/* ==============================
-   音声認識の開始・停止
-============================== */
+/* 音声認識開始 */
 
 function startVoiceRecognition() {
-  if (epilogueOpen || gameFinished || recognizedUSB) {
-    return;
-  }
-
-  if (!recognition) {
-    const initialized = initializeSpeechRecognition();
-
-    if (!initialized) {
-      voiceResult.textContent = "音声認識に非対応";
-      return;
-    }
-  }
-
-  if (recognitionRunning) {
-    return;
-  }
-
-  if (restartRecognitionTimeout !== null) {
-    window.clearTimeout(restartRecognitionTimeout);
-    restartRecognitionTimeout = null;
-  }
+  if (!recognition) return;
+  if (!isHoldingKey || epilogueOpen) return;
+  if (recognitionRunning) return;
 
   try {
+    recognitionRunning = true;
     recognition.start();
   } catch (error) {
-    console.warn("音声認識を開始できませんでした:", error);
     recognitionRunning = false;
+    console.log("音声認識を開始できません:", error);
   }
 }
+
+
+/* 音声認識停止 */
 
 function stopVoiceRecognition() {
   isHoldingKey = false;
 
-  if (restartRecognitionTimeout !== null) {
-    window.clearTimeout(restartRecognitionTimeout);
-    restartRecognitionTimeout = null;
+  if (recognitionRestartTimer !== null) {
+    clearTimeout(recognitionRestartTimer);
+    recognitionRestartTimer = null;
   }
-
-  imageButton.classList.remove("holding");
 
   if (recognition && recognitionRunning) {
     try {
       recognition.stop();
     } catch (error) {
-      console.warn("音声認識の停止に失敗しました:", error);
+      console.log("音声認識停止時のエラー:", error);
     }
   }
-
-  recognitionRunning = false;
-}
-
-function scheduleRecognitionRestart() {
-  if (restartRecognitionTimeout !== null) {
-    window.clearTimeout(restartRecognitionTimeout);
-  }
-
-  restartRecognitionTimeout = window.setTimeout(() => {
-    restartRecognitionTimeout = null;
-
-    if (
-      isHoldingKey &&
-      !epilogueOpen &&
-      !gameFinished &&
-      !recognizedUSB
-    ) {
-      startVoiceRecognition();
-    }
-  }, 300);
 }
 
 
-/* ==============================
-   ボタン長押し操作
-============================== */
+/* 鍵を押したとき */
 
-function beginHolding(event) {
-  if (epilogueOpen || gameFinished) {
-    return;
-  }
+function handleKeyDown(event) {
+  if (epilogueOpen) return;
 
-  // マウスの右クリックなどは無視する
-  if (event.pointerType === "mouse" && event.button !== 0) {
+  // マウス操作では左ボタンだけを受け付ける
+  if (event.button !== undefined && event.button !== 0) {
     return;
   }
 
   event.preventDefault();
 
-  if (isHoldingKey) {
+  if (isHoldingKey) return;
+
+  if (!recognition) {
+    voiceResult.textContent = "音声認識に非対応";
     return;
   }
 
-  // 以前にUSBを認識した場合、再度押すと認識をやり直す
-  recognizedUSB = false;
-
   isHoldingKey = true;
-
-  imageButton.classList.add("holding");
   voiceResult.textContent = "聞き取り中…";
 
+  // start()はボタン操作から直接呼び出す
+  startVoiceRecognition();
+
+  // 指がボタンから外れても離した操作を検出する
   try {
     imageButton.setPointerCapture(event.pointerId);
   } catch (error) {
-    // Pointer Captureが使えない場合も操作を継続
+    // 非対応の場合は無視
   }
-
-  // ユーザーの長押し操作をきっかけに音声認識を開始
-  startVoiceRecognition();
 }
 
-function endHolding(event) {
-  if (event) {
-    event.preventDefault();
-  }
 
-  if (!isHoldingKey) {
-    return;
-  }
+/* 鍵を離したとき */
 
-  isHoldingKey = false;
+function handleKeyUp(event) {
+  if (event) event.preventDefault();
 
-  imageButton.classList.remove("holding");
+  if (!isHoldingKey) return;
 
   stopVoiceRecognition();
 
-  // USBを認識済みの場合は結果を残す
-  if (!recognizedUSB) {
+  // 正解表示は残し、それ以外は消す
+  if (voiceResult.textContent !== "USB") {
     voiceResult.textContent = "";
   }
 }
 
-imageButton.addEventListener("pointerdown", beginHolding);
 
-imageButton.addEventListener("pointerup", endHolding);
-imageButton.addEventListener("pointercancel", endHolding);
-imageButton.addEventListener("lostpointercapture", () => {
-  if (isHoldingKey) {
-    endHolding();
-  }
+/* マウス・タッチ・ペン操作 */
+
+imageButton.addEventListener("pointerdown", handleKeyDown);
+imageButton.addEventListener("pointerup", handleKeyUp);
+imageButton.addEventListener("pointercancel", handleKeyUp);
+imageButton.addEventListener("lostpointercapture", handleKeyUp);
+
+
+/* ページ読み込み */
+
+window.addEventListener("load", () => {
+  updateTimer();
+  showEpilogue();
 });
 
-// 長押し中に指がボタンの外へ移動した場合
-imageButton.addEventListener("contextmenu", (event) => {
-  event.preventDefault();
-});
 
-// iPadのタッチ操作でページが動かないようにする
-imageButton.addEventListener(
-  "touchmove",
+/* iPad向けダブルタップズーム防止 */
+
+let lastTouchEnd = 0;
+
+document.addEventListener(
+  "touchend",
   (event) => {
-    event.preventDefault();
+    const now = Date.now();
+
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+
+    lastTouchEnd = now;
   },
   { passive: false }
 );
 
 
-/* ==============================
-   もう一度遊ぶ
-============================== */
+/* 長押しメニュー防止 */
 
-restartButton.addEventListener("click", () => {
-  stopTimer();
-  stopVoiceRecognition();
-
-  remainingSeconds = TIME_LIMIT;
-  timerStarted = false;
-  gameFinished = false;
-  recognizedUSB = false;
-  isHoldingKey = false;
-
-  timerElement.classList.remove("warning");
-  timeUpMessage.classList.add("hidden");
-
-  imageButton.disabled = false;
-  epilogueButton.disabled = false;
-
-  voiceResult.textContent = "";
-
-  updateTimerDisplay();
-
-  // エピローグを再び表示する
-  showEpilogue();
+document.addEventListener("contextmenu", (event) => {
+  event.preventDefault();
 });
-
-
-/* ==============================
-   初期表示
-============================== */
-
-function initializeGame() {
-  updateTimerDisplay();
-
-  // 最初にエピローグを表示する
-  // エピローグを閉じると10分のタイマーが開始される
-  showEpilogue();
-}
-
-initializeGame();

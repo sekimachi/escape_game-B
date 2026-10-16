@@ -1,31 +1,34 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
   >
-  <meta name="theme-color" content="#10151c">
+
   <title>脱出ゲーム</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <!-- ゲーム画面 -->
-  <main id="gameScreen" class="screen">
-    <div id="timer" aria-live="polite">10:00</div>
 
-    <!-- 画像ボタン：長押しで音声認識 -->
+  <!-- カウントダウン画面 -->
+  <main id="gameScreen" class="screen">
+
+    <div id="timer">12:00</div>
+
+    <!-- 鍵の画像ボタン -->
     <button
       id="imageButton"
       type="button"
-      aria-label="長押しして音声を認識"
+      aria-label="鍵を押して音声認識"
     >
-      <img src="botton.png" alt="ボタン">
+      <img src="botton.png" alt="">
     </button>
 
-    <!-- 音声認識の結果 -->
+    <!-- 音声認識結果 -->
     <div id="voiceResult" aria-live="polite"></div>
 
     <!-- エピローグ再表示 -->
@@ -33,87 +36,39 @@
       エピローグ
     </button>
 
-    <!-- 制限時間終了時の表示 -->
-    <div id="timeUpMessage" class="hidden" role="alert">
-      <div class="messagePanel">
-        <h2>TIME UP</h2>
-        <p>制限時間が終了しました。</p>
-        <button id="restartButton" type="button">もう一度遊ぶ</button>
-      </div>
-    </div>
   </main>
 
   <!-- エピローグ画面 -->
   <section id="epilogueScreen" class="screen">
-    <div id="epilogueShade"></div>
 
-    <div id="epilogueTitle">EPILOGUE</div>
+    <div id="epilogueTitle">― EPILOGUE ―</div>
 
     <div id="epilogueViewport">
-      <div id="epilogueText">
-        <p>放課後の校舎は、いつもより静かだった。</p>
+      <div id="epilogueText">主人公は、今大学4年生で、社会系の研究室で活動を行っている。
 
-        <p>
-          窓から差し込む夕日が、長い廊下を赤く染めている。
-          教室にも、階段にも、もう人の気配はない。
-        </p>
+その研究室は6人在籍しており、個々で将来がかかった大きな研究をしている。
 
-        <p>
-          けれど、今日の出来事は夢ではなかった。
-          解き明かした謎も、見つけた手がかりも、
-          すべてが確かにここにあった。
-        </p>
+そしてその研究発表会が明日に迫っていた。
 
-        <p>
-          最後の扉を開いたとき、私たちはようやく気づいた。
-          この校舎に残されていたものは、ただの暗号ではなかったのだ。
-        </p>
+しかし、研究発表直前に研究資料が入ったUSBとパソコンが何者かによって盗まれてしまう。
 
-        <p>
-          誰かが伝えたかった思い。
-          誰かが残そうとした記憶。
-        </p>
+それらを見つける手掛かりは残された暗号のみ。
 
-        <p>
-          その答えは、ずっと私たちのすぐそばにあった。
-        </p>
+教授からは、「明日の発表会までに見つけ出してくれ」と言われる。
 
-        <p>
-          時計の針が進む。
-          夕日はゆっくりと沈み、校舎に夜が訪れようとしていた。
-        </p>
+主人公は、研究発表会を成功させることができるのか？
 
-        <p>
-          「……帰ろうか」
-        </p>
-
-        <p>
-          私たちは最後にもう一度、校舎を振り返った。
-        </p>
-
-        <p>
-          いつもの学校。
-          いつもの廊下。
-          けれど、もう昨日までと同じ景色には見えなかった。
-        </p>
-
-        <p>
-          こうして、旧校舎に隠されていた謎は解き明かされた。
-        </p>
-
-        <p>
-          そして物語は、静かに幕を閉じる。
-        </p>
-
-        <p class="epilogueEnd">— END —</p>
-      </div>
+プレイヤーは、研究室に残された様々な仕掛けを元にミッションをクリアしよう！</div>
     </div>
 
-    <div id="skipHint">画面をタップするとスキップできます</div>
+    <div id="skipHint">
+      タップするとエピローグをスキップできます
+    </div>
 
     <button id="closeEpilogueButton" type="button">
       スキップ
     </button>
+
   </section>
 
   <script src="script.js"></script>

@@ -1,7 +1,7 @@
 
-/* =========================================================
+/* =========================
    基本設定
-========================================================= */
+========================= */
 
 * {
   box-sizing: border-box;
@@ -12,6 +12,7 @@ html,
 body {
   width: 100%;
   height: 100%;
+  height: 100dvh;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -23,20 +24,14 @@ body {
     "Hiragino Mincho ProN",
     "MS PMincho",
     serif;
-  touch-action: manipulation;
-}
-
-body {
-  position: relative;
 }
 
 button {
-  font-family: inherit;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
 }
-
-/* =========================================================
-   共通画面
-========================================================= */
 
 .screen {
   position: fixed;
@@ -47,12 +42,11 @@ button {
   overflow: hidden;
 }
 
-/* =========================================================
-   カウントダウン画面
-========================================================= */
+/* =========================
+   ゲーム画面
+========================= */
 
 #gameScreen {
-  position: fixed;
   z-index: 1;
   display: flex;
   justify-content: center;
@@ -69,9 +63,9 @@ button {
   background-repeat: no-repeat;
 }
 
-/* =========================================================
+/* =========================
    タイマー
-========================================================= */
+========================= */
 
 #timer {
   position: relative;
@@ -83,10 +77,9 @@ button {
   color: #fff;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
   user-select: none;
+  pointer-events: none;
   transition: color 0.3s ease, transform 0.3s ease;
 }
-
-/* 残り1分 */
 
 #timer.warning {
   color: #ffcc66;
@@ -94,16 +87,9 @@ button {
 }
 
 @keyframes timerWarning {
-  0%, 100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.03);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
 }
-
-/* 時間切れ */
 
 #timer.timeup {
   color: #ff5555;
@@ -111,41 +97,28 @@ button {
 }
 
 @keyframes timeupAnimation {
-  0%, 100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.05);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
-/* =========================================================
-   鍵の画像ボタン
-========================================================= */
+/* =========================
+   音声認識用の画像ボタン
+========================= */
 
 #imageButton {
   position: absolute;
-
-  /* 背景上の配置位置 */
+  z-index: 5;
   left: 48%;
   top: 42%;
-
   width: 75px;
   height: 75px;
-
-  margin: 0;
   padding: 0;
   border: none;
-  border-radius: 0;
   background: transparent;
-
-  z-index: 50;
-  cursor: pointer;
+  opacity: 0.7;
   touch-action: none;
-
-  -webkit-appearance: none;
-  appearance: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 #imageButton img {
@@ -153,357 +126,607 @@ button {
   width: 100%;
   height: 100%;
   object-fit: contain;
-
-  /* 背景になじませる */
   filter: brightness(0.35);
-  opacity: 0.65;
-
+  pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
-  pointer-events: none;
-
-  transition: transform 0.15s ease;
 }
 
-#imageButton:active img {
-  transform: scale(0.95);
+#imageButton:active {
+  transform: scale(0.94);
 }
 
-#imageButton:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
+#imageButton.listening img {
+  filter: brightness(0.8);
+  opacity: 1;
 }
 
-/* =========================================================
-   音声認識結果
-========================================================= */
+/* =========================
+   音声認識の結果
+   認識成功時のみ表示
+========================= */
 
 #voiceResult {
   position: fixed;
-  left: 50%;
+  z-index: 8;
   top: 62%;
-  transform: translate(-50%, -50%);
-
-  z-index: 60;
-
-  color: #ffe5a8;
-  font-size: clamp(32px, 7vw, 72px);
-  font-weight: bold;
-  letter-spacing: 0.12em;
-
-  text-shadow:
-    0 0 12px rgba(255, 210, 120, 0.7),
-    2px 2px 6px rgba(0, 0, 0, 0.9);
-
-  pointer-events: none;
-  user-select: none;
+  left: 50%;
+  width: min(90vw, 850px);
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: clamp(20px, 4vw, 36px);
+  line-height: 1.6;
   text-align: center;
+  text-shadow:
+    0 2px 8px #000,
+    0 0 18px #000;
+  pointer-events: none;
 }
 
-/* =========================================================
+/* =========================
+   エピローグボタン
+========================= */
+
+#epilogueButton,
+#epilogue2Button {
+  position: fixed;
+  z-index: 10;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  min-height: 54px;
+  padding: 12px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.78);
+  color: #fff;
+  font-size: clamp(13px, 2vw, 17px);
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#epilogueButton {
+  right: 20px;
+}
+
+#epilogue2Button {
+  right: 160px;
+}
+
+#epilogueButton:active,
+#epilogue2Button:active,
+#closeEpilogueButton:active {
+  transform: scale(0.95);
+}
+
+/* =========================
    エピローグ画面
-========================================================= */
+========================= */
 
 #epilogueScreen {
-  z-index: 10;
+  z-index: 20;
   display: flex;
   justify-content: center;
-  align-items: center;
-
-  background-color: #111;
+  align-items: stretch;
+  background-color: #000;
   background-image:
     linear-gradient(
-      rgba(0, 0, 0, 0.58),
-      rgba(0, 0, 0, 0.72)
+      rgba(0, 0, 0, 0.45),
+      rgba(0, 0, 0, 0.65)
     ),
     url("background.jpg");
-
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
-  transition: opacity 1s ease, visibility 1s ease;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 
-/* エピローグ背景の暗い部分 */
+#epilogueScreen.hidden {
+  display: none;
+}
 
-#epilogueScreen::before {
-  content: "";
+#epilogueScreen .epilogue-shade {
   position: absolute;
-  inset: -5%;
-
-  background:
-    radial-gradient(
-      circle at center,
-      transparent 0%,
-      rgba(0, 0, 0, 0.15) 45%,
-      rgba(0, 0, 0, 0.65) 100%
-    );
-
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
   pointer-events: none;
 }
-
-/* エピローグタイトル */
-
-#epilogueTitle {
-  position: absolute;
-  top: 7vh;
-  left: 0;
-  right: 0;
-
-  text-align: center;
-  z-index: 5;
-
-  font-size: clamp(18px, 2.5vw, 28px);
-  letter-spacing: 0.3em;
-  opacity: 0.8;
-
-  animation: titleFade 2s ease;
-}
-
-@keyframes titleFade {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 0.8;
-  }
-}
-
-/* エピローグ文章表示領域 */
 
 #epilogueViewport {
   position: relative;
+  z-index: 1;
   width: min(900px, 88vw);
   height: 100%;
   overflow: hidden;
-  z-index: 2;
+  text-align: center;
 }
 
-/* エピローグ文章 */
+#epilogueTitle {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-shadow: 0 2px 10px #000;
+  animation: epilogueTitleScroll 60s linear forwards;
+}
 
 #epilogueText {
   position: absolute;
+  top: 115%;
   left: 0;
-  right: 0;
-  top: 100%;
-
-  padding: 30vh 4vw;
-  text-align: center;
-
-  font-size: clamp(20px, 3vw, 34px);
-  line-height: 2.4;
-  letter-spacing: 0.12em;
+  width: 100%;
+  padding-bottom: 20vh;
   white-space: pre-line;
-
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 3vw, 27px);
+  line-height: 2.2;
+  letter-spacing: 0.06em;
+  text-align: center;
   text-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.9),
-    0 0 20px rgba(0, 0, 0, 0.7);
-
-  animation: epilogueScroll 45s linear forwards;
+    0 2px 8px #000,
+    0 0 15px #000;
+  animation: epilogueScroll 60s linear forwards;
 }
 
-/* 文章を下から上へスクロール */
+@keyframes epilogueTitleScroll {
+  from { top: 100%; }
+  to { top: -15%; }
+}
 
 @keyframes epilogueScroll {
-  0% {
-    transform: translateY(0);
-  }
-
-  100% {
-    transform: translateY(-250%);
-  }
+  from { top: 115%; }
+  to { top: -180%; }
 }
 
-/* スキップ案内 */
-
-#skipHint {
-  position: absolute;
-  bottom: calc(4vh + env(safe-area-inset-bottom));
-  left: 0;
-  right: 0;
-
-  text-align: center;
-  z-index: 20;
-
-  font-size: 14px;
-  letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.65);
-
-  pointer-events: none;
-  animation: hintBlink 2s ease-in-out infinite;
-}
-
-@keyframes hintBlink {
-  0%, 100% {
-    opacity: 0.35;
-  }
-
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* =========================================================
-   エピローグ再表示ボタン
-========================================================= */
-
-#epilogueButton {
-  position: fixed;
-  right: calc(24px + env(safe-area-inset-right));
-  bottom: calc(24px + env(safe-area-inset-bottom));
-
-  z-index: 100;
-
-  min-width: 150px;
-  min-height: 58px;
-  padding: 14px 24px;
-
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 10px;
-
-  background: rgba(20, 20, 20, 0.78);
-  color: #fff;
-
-  font-size: 17px;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    border-color 0.2s ease;
-}
-
-#epilogueButton:hover {
-  background: rgba(60, 60, 60, 0.85);
-  border-color: rgba(255, 255, 255, 0.8);
-}
-
-#epilogueButton:active {
-  transform: scale(0.94);
-}
-
-/* =========================================================
-   スキップボタン
-========================================================= */
+/* =========================
+   エピローグの操作ボタン
+========================= */
 
 #closeEpilogueButton {
-  position: absolute;
-  right: calc(24px + env(safe-area-inset-right));
-  bottom: calc(24px + env(safe-area-inset-bottom));
-
+  position: fixed;
   z-index: 30;
-
-  min-width: 150px;
-  min-height: 58px;
-  padding: 14px 24px;
-
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  min-height: 50px;
+  padding: 12px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 10px;
-
-  background: rgba(20, 20, 20, 0.75);
+  background: rgba(20, 20, 20, 0.8);
   color: #fff;
-
-  font-size: 17px;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-
+  font-size: 16px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-#closeEpilogueButton:active {
-  transform: scale(0.94);
-}
-
-/* =========================================================
-   エピローグ非表示
-========================================================= */
-
-#epilogueScreen.hidden {
-  opacity: 0;
-  visibility: hidden;
+#skipHint {
+  position: fixed;
+  z-index: 30;
+  left: 16px;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  max-width: 65vw;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  text-shadow: 0 1px 5px #000;
   pointer-events: none;
 }
 
-/* =========================================================
-   iPad 縦向き
-========================================================= */
-
-@media (orientation: portrait) {
-  #epilogueText {
-    width: 92%;
-    margin: auto;
-    font-size: clamp(19px, 5vw, 30px);
-    line-height: 2.3;
-    padding: 35vh 3vw;
-  }
-
-  #timer {
-    font-size: clamp(70px, 20vw, 140px);
-  }
-
-  #epilogueButton,
-  #closeEpilogueButton {
-    min-width: 135px;
-    min-height: 54px;
-    font-size: 16px;
-  }
-}
-
-/* =========================================================
-   iPad 横向き
-========================================================= */
-
-@media (orientation: landscape) {
-  #epilogueText {
-    max-width: 900px;
-    font-size: clamp(20px, 3vw, 34px);
-  }
-}
-
-/* =========================================================
-   小さい画面
-========================================================= */
+/* =========================
+   小さい画面・縦向き
+========================= */
 
 @media (max-width: 600px) {
+  #imageButton {
+    width: 65px;
+    height: 65px;
+  }
+
   #epilogueButton,
+  #epilogue2Button {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 46px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  #epilogueButton {
+    right: 12px;
+  }
+
+  #epilogue2Button {
+    right: 120px;
+  }
+
   #closeEpilogueButton {
-    min-width: 120px;
-    min-height: 50px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 46px;
     padding: 10px 16px;
     font-size: 14px;
   }
-}
 
-/* =========================================================
-   画面が低い場合
-========================================================= */
-
-@media (max-height: 500px) {
-  #epilogueTitle {
-    top: 3vh;
-  }
-
-  #epilogueText {
-    padding-top: 15vh;
-    padding-bottom: 15vh;
+  #skipHint {
+    left: 12px;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    font-size: 10px;
   }
 }
 
-/* =========================================================
-   動きを減らす設定
-========================================================= */
-
+/* 動きを減らす設定がある場合 */
 @media (prefers-reduced-motion: reduce) {
-  #imageButton img {
-    transition: none;
+  #timer.warning,
+  #timer.timeup {
+    animation: none;
+  }
+}
+
+/* =========================
+   基本設定
+========================= */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family:
+    "Noto Serif JP",
+    "Yu Mincho",
+    "Hiragino Mincho ProN",
+    "MS PMincho",
+    serif;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.screen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* =========================
+   ゲーム画面
+========================= */
+
+#gameScreen {
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #050505;
+  background-image:
+    linear-gradient(
+      rgba(0, 0, 0, 0.45),
+      rgba(0, 0, 0, 0.65)
+    ),
+    url("background2.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* =========================
+   タイマー
+========================= */
+
+#timer {
+  position: relative;
+  z-index: 2;
+  font-family: "Courier New", monospace;
+  font-size: clamp(80px, 18vw, 190px);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+  user-select: none;
+  pointer-events: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+#timer.warning {
+  color: #ffcc66;
+  animation: timerWarning 1s ease-in-out infinite;
+}
+
+@keyframes timerWarning {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+#timer.timeup {
+  color: #ff5555;
+  animation: timeupAnimation 0.8s ease-in-out infinite;
+}
+
+@keyframes timeupAnimation {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* =========================
+   音声認識用の画像ボタン
+========================= */
+
+#imageButton {
+  position: absolute;
+  z-index: 5;
+  left: 48%;
+  top: 42%;
+  width: 75px;
+  height: 75px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  opacity: 0.7;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#imageButton img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0.35);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+#imageButton:active {
+  transform: scale(0.94);
+}
+
+#imageButton.listening img {
+  filter: brightness(0.8);
+  opacity: 1;
+}
+
+/* =========================
+   音声認識の結果
+   認識成功時のみ表示
+========================= */
+
+#voiceResult {
+  position: fixed;
+  z-index: 8;
+  top: 62%;
+  left: 50%;
+  width: min(90vw, 850px);
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: clamp(20px, 4vw, 36px);
+  line-height: 1.6;
+  text-align: center;
+  text-shadow:
+    0 2px 8px #000,
+    0 0 18px #000;
+  pointer-events: none;
+}
+
+/* =========================
+   エピローグボタン
+========================= */
+
+#epilogueButton,
+#epilogue2Button {
+  position: fixed;
+  z-index: 10;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  min-height: 54px;
+  padding: 12px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.78);
+  color: #fff;
+  font-size: clamp(13px, 2vw, 17px);
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#epilogueButton {
+  right: 20px;
+}
+
+#epilogue2Button {
+  right: 160px;
+}
+
+#epilogueButton:active,
+#epilogue2Button:active,
+#closeEpilogueButton:active {
+  transform: scale(0.95);
+}
+
+/* =========================
+   エピローグ画面
+========================= */
+
+#epilogueScreen {
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  background-color: #000;
+  background-image:
+    linear-gradient(
+      rgba(0, 0, 0, 0.45),
+      rgba(0, 0, 0, 0.65)
+    ),
+    url("background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+#epilogueScreen.hidden {
+  display: none;
+}
+
+#epilogueScreen .epilogue-shade {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+#epilogueViewport {
+  position: relative;
+  z-index: 1;
+  width: min(900px, 88vw);
+  height: 100%;
+  overflow: hidden;
+  text-align: center;
+}
+
+#epilogueTitle {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-shadow: 0 2px 10px #000;
+  animation: epilogueTitleScroll 60s linear forwards;
+}
+
+#epilogueText {
+  position: absolute;
+  top: 115%;
+  left: 0;
+  width: 100%;
+  padding-bottom: 20vh;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 3vw, 27px);
+  line-height: 2.2;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-shadow:
+    0 2px 8px #000,
+    0 0 15px #000;
+  animation: epilogueScroll 60s linear forwards;
+}
+
+@keyframes epilogueTitleScroll {
+  from { top: 100%; }
+  to { top: -15%; }
+}
+
+@keyframes epilogueScroll {
+  from { top: 115%; }
+  to { top: -180%; }
+}
+
+/* =========================
+   エピローグの操作ボタン
+========================= */
+
+#closeEpilogueButton {
+  position: fixed;
+  z-index: 30;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  min-height: 50px;
+  padding: 12px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.8);
+  color: #fff;
+  font-size: 16px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#skipHint {
+  position: fixed;
+  z-index: 30;
+  left: 16px;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  max-width: 65vw;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  text-shadow: 0 1px 5px #000;
+  pointer-events: none;
+}
+
+/* =========================
+   小さい画面・縦向き
+========================= */
+
+@media (max-width: 600px) {
+  #imageButton {
+    width: 65px;
+    height: 65px;
+  }
+
+  #epilogueButton,
+  #epilogue2Button {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 46px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  #epilogueButton {
+    right: 12px;
+  }
+
+  #epilogue2Button {
+    right: 120px;
+  }
+
+  #closeEpilogueButton {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 46px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  #skipHint {
+    left: 12px;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    font-size: 10px;
+  }
+}
+
+/* 動きを減らす設定がある場合 */
+@media (prefers-reduced-motion: reduce) {
+  #timer.warning,
+  #timer.timeup {
+    animation: none;
   }
 }

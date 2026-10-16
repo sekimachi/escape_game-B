@@ -3,72 +3,54 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-  >
-
-  <title>脱出ゲーム</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <title>旧校舎の謎</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- カウントダウン画面 -->
+  <!-- ゲーム画面 -->
   <main id="gameScreen" class="screen">
+    <div id="timer" aria-label="残り時間">10:00</div>
 
-    <div id="timer">12:00</div>
-
-    <!-- 鍵の画像ボタン -->
-    <button
-      id="imageButton"
-      type="button"
-      aria-label="鍵を押して音声認識"
-    >
-      <img src="botton.png" alt="">
+    <!-- 長押しして音声認識する画像ボタン -->
+    <button id="imageButton" type="button"
+            aria-label="ボタンを長押しして音声認識">
+      <img src="botton.png" alt="音声認識ボタン"
+           draggable="false">
     </button>
 
-    <!-- 音声認識結果 -->
+    <!-- 認識成功時だけ文章を表示 -->
     <div id="voiceResult" aria-live="polite"></div>
 
-    <!-- エピローグ再表示 -->
+    <!-- エピローグ再生ボタン -->
     <button id="epilogueButton" type="button">
       エピローグ
     </button>
 
+    <!-- エピローグ2再生ボタン -->
+    <button id="epilogue2Button" type="button">
+      エピローグ2
+    </button>
   </main>
 
   <!-- エピローグ画面 -->
-  <section id="epilogueScreen" class="screen">
-
-    <div id="epilogueTitle">― EPILOGUE ―</div>
+  <section id="epilogueScreen" class="screen hidden"
+           aria-label="エピローグ">
+    <div class="epilogue-shade"></div>
 
     <div id="epilogueViewport">
-      <div id="epilogueText">主人公は、今大学4年生で、社会系の研究室で活動を行っている。
-
-その研究室は6人在籍しており、個々で将来がかかった大きな研究をしている。
-
-そしてその研究発表会が明日に迫っていた。
-
-しかし、研究発表直前に研究資料が入ったUSBとパソコンが何者かによって盗まれてしまう。
-
-それらを見つける手掛かりは残された暗号のみ。
-
-教授からは、「明日の発表会までに見つけ出してくれ」と言われる。
-
-主人公は、研究発表会を成功させることができるのか？
-
-プレイヤーは、研究室に残された様々な仕掛けを元にミッションをクリアしよう！</div>
-    </div>
-
-    <div id="skipHint">
-      タップするとエピローグをスキップできます
+      <h1 id="epilogueTitle">EPILOGUE</h1>
+      <div id="epilogueText"></div>
     </div>
 
     <button id="closeEpilogueButton" type="button">
-      スキップ
+      戻る
     </button>
 
+    <div id="skipHint">画面右下の「戻る」でゲームに戻る</div>
   </section>
 
   <script src="script.js"></script>

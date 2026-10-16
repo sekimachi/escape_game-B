@@ -179,7 +179,7 @@ if (SpeechRecognitionAPI) {
   recognition = new SpeechRecognitionAPI();
 
   // USBを英語の略語として認識させる
-  recognition.lang = "en-US";
+  recognition.lang = "jp-US";
   recognition.continuous = true;
   recognition.interimResults = true;
   recognition.maxAlternatives = 3;

@@ -5,8 +5,8 @@
 
 /* 設定 */
 
-const GAME_TIME = 12 * 60;
-const EPILOGUE_DURATION = 35000;
+const GAME_TIME = 10 * 60;
+const EPILOGUE_DURATION = 45000;
 
 
 /* HTML要素 */

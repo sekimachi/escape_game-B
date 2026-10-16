@@ -3,120 +3,68 @@
    脱出ゲーム メインJavaScript
 ========================================================= */
 
+/* 設定 */
 
-/* =========================================================
-   設定
-========================================================= */
-
-// 制限時間：12分
 const GAME_TIME = 12 * 60;
-
-// エピローグの表示時間：35秒
 const EPILOGUE_DURATION = 35000;
 
 
-/* =========================================================
-   HTML要素
-========================================================= */
+/* HTML要素 */
 
 const gameScreen = document.getElementById("gameScreen");
-
-const epilogueScreen =
-  document.getElementById("epilogueScreen");
-
-const epilogueText =
-  document.getElementById("epilogueText");
-
-const timerElement =
-  document.getElementById("timer");
-
-const epilogueButton =
-  document.getElementById("epilogueButton");
-
+const epilogueScreen = document.getElementById("epilogueScreen");
+const epilogueText = document.getElementById("epilogueText");
+const timerElement = document.getElementById("timer");
+const epilogueButton = document.getElementById("epilogueButton");
 const closeEpilogueButton =
   document.getElementById("closeEpilogueButton");
+const imageButton = document.getElementById("imageButton");
+const voiceResult = document.getElementById("voiceResult");
 
-const imageButton =
-  document.getElementById("imageButton");
 
+/* タイマー状態 */
 
-/* =========================================================
-   タイマー状態
-========================================================= */
-
-// 残り時間
 let remainingTime = GAME_TIME;
-
-// タイマー開始済みか
 let timerStarted = false;
-
-// タイマーのID
 let timerInterval = null;
-
-// エピローグが表示中か
 let epilogueOpen = false;
-
-// エピローグ自動終了タイマー
 let epilogueTimeout = null;
 
 
-/* =========================================================
-   タイマー表示
-========================================================= */
+/* タイマー表示 */
 
 function updateTimer() {
-  // 0未満にならないようにする
   remainingTime = Math.max(0, remainingTime);
 
-  // 分と秒を計算
   const minutes = Math.floor(remainingTime / 60);
   const seconds = remainingTime % 60;
 
-  // 2桁表示
-  const minuteText = String(minutes).padStart(2, "0");
-  const secondText = String(seconds).padStart(2, "0");
-
-  // タイマー表示
   timerElement.textContent =
-    `${minuteText}:${secondText}`;
+    `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-  // 警告表示をリセット
   timerElement.classList.remove("warning");
 
-  // 残り1分以下なら警告
   if (remainingTime <= 60 && remainingTime > 0) {
     timerElement.classList.add("warning");
   }
 
-  // 時間切れ
   if (remainingTime === 0) {
     timerElement.classList.remove("warning");
     timerElement.classList.add("timeup");
-
     stopTimer();
-
     console.log("制限時間終了");
   }
 }
 
 
-/* =========================================================
-   タイマー開始
-========================================================= */
+/* タイマー開始 */
 
 function startTimer() {
-  // 二重起動を防ぐ
-  if (timerStarted) {
-    return;
-  }
+  if (timerStarted) return;
 
-  // 開始済みにする
   timerStarted = true;
-
-  // 初回表示
   updateTimer();
 
-  // 1秒ごとにカウントダウン
   timerInterval = setInterval(() => {
     if (remainingTime > 0) {
       remainingTime--;
@@ -128,9 +76,7 @@ function startTimer() {
 }
 
 
-/* =========================================================
-   タイマー停止
-========================================================= */
+/* タイマー停止 */
 
 function stopTimer() {
   if (timerInterval !== null) {
@@ -140,33 +86,26 @@ function stopTimer() {
 }
 
 
-/* =========================================================
-   エピローグ表示
-========================================================= */
+/* エピローグ表示 */
 
 function showEpilogue() {
-  // 古い自動終了タイマーを解除
   if (epilogueTimeout !== null) {
     clearTimeout(epilogueTimeout);
     epilogueTimeout = null;
   }
 
-  // エピローグを表示
-  epilogueScreen.classList.remove("hidden");
+  // 音声認識中なら停止
+  stopVoiceRecognition();
 
+  epilogueScreen.classList.remove("hidden");
   epilogueOpen = true;
 
-  // 文章アニメーションをリセット
   epilogueText.style.animation = "none";
-
-  // 再描画してアニメーションを再実行できるようにする
   void epilogueText.offsetWidth;
 
-  // 文章スクロールを最初から再生
   epilogueText.style.animation =
     "epilogueScroll 35s linear forwards";
 
-  // 35秒後に自動終了
   epilogueTimeout = setTimeout(() => {
     if (epilogueOpen) {
       closeEpilogue();
@@ -175,66 +114,44 @@ function showEpilogue() {
 }
 
 
-/* =========================================================
-   エピローグ終了
-========================================================= */
+/* エピローグ終了 */
 
 function closeEpilogue() {
-  // すでに閉じていたら何もしない
-  if (!epilogueOpen) {
-    return;
-  }
+  if (!epilogueOpen) return;
 
   epilogueOpen = false;
 
-  // 自動終了タイマーを解除
   if (epilogueTimeout !== null) {
     clearTimeout(epilogueTimeout);
     epilogueTimeout = null;
   }
 
-  // エピローグを非表示
   epilogueScreen.classList.add("hidden");
-
-  // タイマーを開始
-  // すでに開始済みなら二重起動しない
   startTimer();
 }
 
 
-/* =========================================================
-   エピローグ再表示ボタン
-========================================================= */
+/* エピローグ再表示 */
 
 epilogueButton.addEventListener("click", (event) => {
   event.stopPropagation();
-
   showEpilogue();
 });
 
 
-/* =========================================================
-   スキップボタン
-========================================================= */
+/* スキップボタン */
 
 closeEpilogueButton.addEventListener("click", (event) => {
   event.stopPropagation();
-
   closeEpilogue();
 });
 
 
-/* =========================================================
-   エピローグ画面のタップでスキップ
-========================================================= */
+/* エピローグ画面のタップでスキップ */
 
 epilogueScreen.addEventListener("click", (event) => {
-  // スキップボタンの処理と重複させない
-  if (closeEpilogueButton.contains(event.target)) {
-    return;
-  }
+  if (closeEpilogueButton.contains(event.target)) return;
 
-  // エピローグが表示中なら閉じる
   if (epilogueOpen) {
     closeEpilogue();
   }
@@ -242,40 +159,219 @@ epilogueScreen.addEventListener("click", (event) => {
 
 
 /* =========================================================
-   画像ボタン
+   鍵ボタン：音声認識
 ========================================================= */
 
-imageButton.addEventListener("click", () => {
-  console.log("画像ボタンが押されました");
+// SafariやChromeが提供する音声認識APIを取得
+const SpeechRecognitionAPI =
+  window.SpeechRecognition ||
+  window.webkitSpeechRecognition;
 
-  /*
-    ここにボタンを押したときの処理を追加できます。
-
-    例：
-    ・謎解き画面を表示する
-    ・画像や文章を表示する
-    ・別のページに移動する
-    ・正解判定を行う
-  */
-});
+let recognition = null;
+let isHoldingKey = false;
+let recognitionRunning = false;
+let recognitionRestartTimer = null;
 
 
-/* =========================================================
-   ページ読み込み
-========================================================= */
+/* 音声認識の準備 */
+
+if (SpeechRecognitionAPI) {
+  recognition = new SpeechRecognitionAPI();
+
+  // USBを英語の略語として認識させる
+  recognition.lang = "en-US";
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 3;
+
+  /* 認識結果 */
+
+  recognition.onresult = (event) => {
+    if (!isHoldingKey) return;
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
+
+      // 候補を順番に確認
+      for (let j = 0; j < result.length; j++) {
+        const transcript = result[j].transcript
+          .trim()
+          .toUpperCase();
+
+        console.log("音声認識結果:", transcript);
+
+        // 句読点を取り除いて判定
+        const normalized = transcript
+          .replace(/[.,!?]/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const recognizedUSB =
+          /\bUSB\b/.test(normalized) ||
+          /\bU\s+S\s+B\b/.test(normalized);
+
+        if (recognizedUSB) {
+          voiceResult.textContent = "USB";
+
+          // 正解を認識したら停止
+          isHoldingKey = false;
+          stopVoiceRecognition();
+
+          console.log("USBを認識しました");
+          return;
+        }
+      }
+    }
+  };
+
+  /* 音声認識エラー */
+
+  recognition.onerror = (event) => {
+    console.log("音声認識エラー:", event.error);
+
+    if (
+      event.error === "not-allowed" ||
+      event.error === "service-not-allowed"
+    ) {
+      voiceResult.textContent = "マイクを許可してください";
+      isHoldingKey = false;
+    } else if (event.error === "no-speech") {
+      console.log("音声が検出されませんでした");
+    } else if (event.error === "network") {
+      console.log("音声認識サービスへの接続に失敗しました");
+    }
+  };
+
+  /* 認識終了時 */
+
+  recognition.onend = () => {
+    recognitionRunning = false;
+
+    if (recognitionRestartTimer !== null) {
+      clearTimeout(recognitionRestartTimer);
+      recognitionRestartTimer = null;
+    }
+
+    // ボタンを押し続けている間だけ再開
+    if (isHoldingKey && !epilogueOpen) {
+      recognitionRestartTimer = setTimeout(() => {
+        recognitionRestartTimer = null;
+        startVoiceRecognition();
+      }, 200);
+    }
+  };
+
+} else {
+  console.warn(
+    "このブラウザはWeb Speech APIに対応していません。"
+  );
+}
+
+
+/* 音声認識開始 */
+
+function startVoiceRecognition() {
+  if (!recognition) return;
+  if (!isHoldingKey || epilogueOpen) return;
+  if (recognitionRunning) return;
+
+  try {
+    recognitionRunning = true;
+    recognition.start();
+  } catch (error) {
+    recognitionRunning = false;
+    console.log("音声認識を開始できません:", error);
+  }
+}
+
+
+/* 音声認識停止 */
+
+function stopVoiceRecognition() {
+  isHoldingKey = false;
+
+  if (recognitionRestartTimer !== null) {
+    clearTimeout(recognitionRestartTimer);
+    recognitionRestartTimer = null;
+  }
+
+  if (recognition && recognitionRunning) {
+    try {
+      recognition.stop();
+    } catch (error) {
+      console.log("音声認識停止時のエラー:", error);
+    }
+  }
+}
+
+
+/* 鍵を押したとき */
+
+function handleKeyDown(event) {
+  if (epilogueOpen) return;
+
+  // マウス操作では左ボタンだけを受け付ける
+  if (event.button !== undefined && event.button !== 0) {
+    return;
+  }
+
+  event.preventDefault();
+
+  if (isHoldingKey) return;
+
+  if (!recognition) {
+    voiceResult.textContent = "音声認識に非対応";
+    return;
+  }
+
+  isHoldingKey = true;
+  voiceResult.textContent = "聞き取り中…";
+
+  // start()はボタン操作から直接呼び出す
+  startVoiceRecognition();
+
+  // 指がボタンから外れても離した操作を検出する
+  try {
+    imageButton.setPointerCapture(event.pointerId);
+  } catch (error) {
+    // 非対応の場合は無視
+  }
+}
+
+
+/* 鍵を離したとき */
+
+function handleKeyUp(event) {
+  if (event) event.preventDefault();
+
+  if (!isHoldingKey) return;
+
+  stopVoiceRecognition();
+
+  // 正解表示は残し、それ以外は消す
+  if (voiceResult.textContent !== "USB") {
+    voiceResult.textContent = "";
+  }
+}
+
+
+/* マウス・タッチ・ペン操作 */
+
+imageButton.addEventListener("pointerdown", handleKeyDown);
+imageButton.addEventListener("pointerup", handleKeyUp);
+imageButton.addEventListener("pointercancel", handleKeyUp);
+imageButton.addEventListener("lostpointercapture", handleKeyUp);
+
+
+/* ページ読み込み */
 
 window.addEventListener("load", () => {
-  // タイマーの初期表示
   updateTimer();
-
-  // 最初にエピローグを表示
   showEpilogue();
 });
 
 
-/* =========================================================
-   iPad向けダブルタップズーム防止
-========================================================= */
+/* iPad向けダブルタップズーム防止 */
 
 let lastTouchEnd = 0;
 
@@ -290,17 +386,12 @@ document.addEventListener(
 
     lastTouchEnd = now;
   },
-  {
-    passive: false
-  }
+  { passive: false }
 );
 
 
-/* =========================================================
-   長押しメニュー防止
-========================================================= */
+/* 長押しメニュー防止 */
 
 document.addEventListener("contextmenu", (event) => {
-  // ボタンや画像の長押しメニューを防止
   event.preventDefault();
 });

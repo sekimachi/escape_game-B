@@ -12,22 +12,17 @@ html,
 body {
   width: 100%;
   height: 100%;
-
   margin: 0;
   padding: 0;
-
   overflow: hidden;
-
   background: #000;
   color: #fff;
-
   font-family:
     "Noto Serif JP",
     "Yu Mincho",
     "Hiragino Mincho ProN",
     "MS PMincho",
     serif;
-
   touch-action: manipulation;
 }
 
@@ -39,7 +34,6 @@ button {
   font-family: inherit;
 }
 
-
 /* =========================================================
    共通画面
 ========================================================= */
@@ -47,43 +41,33 @@ button {
 .screen {
   position: fixed;
   inset: 0;
-
   width: 100%;
   height: 100%;
-
   height: 100dvh;
-
   overflow: hidden;
 }
 
-
 /* =========================================================
    カウントダウン画面
-   背景画像：background2.jpg
 ========================================================= */
 
 #gameScreen {
+  position: fixed;
   z-index: 1;
-
   display: flex;
-
   justify-content: center;
   align-items: center;
-
   background-color: #050505;
-
   background-image:
     linear-gradient(
       rgba(0, 0, 0, 0.45),
       rgba(0, 0, 0, 0.65)
     ),
     url("background2.jpg");
-
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
-
 
 /* =========================================================
    タイマー
@@ -92,41 +76,25 @@ button {
 #timer {
   position: relative;
   z-index: 2;
-
   font-family: "Courier New", monospace;
-
   font-size: clamp(80px, 18vw, 190px);
   font-weight: 400;
-
   letter-spacing: 0.05em;
-
   color: #fff;
-
-  text-shadow:
-    0 0 20px rgba(255, 255, 255, 0.15);
-
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
   user-select: none;
-
-  transition:
-    color 0.3s ease,
-    transform 0.3s ease;
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
-
-/* =========================================================
-   残り1分
-========================================================= */
+/* 残り1分 */
 
 #timer.warning {
   color: #ffcc66;
-
-  animation:
-    timerWarning 1s ease-in-out infinite;
+  animation: timerWarning 1s ease-in-out infinite;
 }
 
 @keyframes timerWarning {
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
   }
 
@@ -135,21 +103,15 @@ button {
   }
 }
 
-
-/* =========================================================
-   時間切れ
-========================================================= */
+/* 時間切れ */
 
 #timer.timeup {
   color: #ff5555;
-
-  animation:
-    timeupAnimation 0.8s ease-in-out infinite;
+  animation: timeupAnimation 0.8s ease-in-out infinite;
 }
 
 @keyframes timeupAnimation {
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
   }
 
@@ -158,100 +120,34 @@ button {
   }
 }
 
-
 /* =========================================================
-   画像ボタン
-   座標は画面の左上が (0, 0)
+   鍵の画像ボタン
 ========================================================= */
 
-#imageButton {
-  position: fixed;
-
-  /* ===== 座標設定 ===== */
-  left: 100px;
-  top: 200px;
-
-  /* ===== サイズ設定 ===== */
-  width: 150px;
-  height: 150px;
-
-  margin: 0;
-  padding: 0;
-
-  border: none;
-  border-radius: 0;
-
-  background: transparent;
-
-  z-index: 50;
-
-  cursor: pointer;
-  touch-action: manipulation;
-
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-
-/* =========================================================
-   画像ボタン：小型・背景になじませる
-========================================================= */
-
-#imageButton {
-  position: fixed;
-
-  /* 座標 */
-  left: 400px;
-  top: 100px;
-
-  /* サイズ */
-  width: 75px;
-  height: 75px;
-
-  margin: 0;
-  padding: 0;
-
-  border: none;
-  border-radius: 0;
-  background: transparent;
-
-  z-index: 50;
-
-  cursor: pointer;
-  touch-action: manipulation;
-
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-/* 画像を暗くして背景になじませる */
-
-/* 背景画像の上に配置するボタン */
 #imageButton {
   position: absolute;
 
-  /* 背景画像の左上からの割合 */
+  /* 背景上の配置位置 */
   left: 48%;
   top: 42%;
 
-  /* ボタンの大きさ */
   width: 75px;
   height: 75px;
 
   margin: 0;
   padding: 0;
   border: none;
+  border-radius: 0;
   background: transparent;
 
   z-index: 50;
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: none;
 
   -webkit-appearance: none;
   appearance: none;
 }
 
-/* ボタン画像 */
 #imageButton img {
   display: block;
   width: 100%;
@@ -273,29 +169,48 @@ button {
   transform: scale(0.95);
 }
 
-/* キーボード操作時 */
 #imageButton:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.5);
   outline-offset: 2px;
 }
 
+/* =========================================================
+   音声認識結果
+========================================================= */
 
+#voiceResult {
+  position: fixed;
+  left: 50%;
+  top: 62%;
+  transform: translate(-50%, -50%);
+
+  z-index: 60;
+
+  color: #ffe5a8;
+  font-size: clamp(32px, 7vw, 72px);
+  font-weight: bold;
+  letter-spacing: 0.12em;
+
+  text-shadow:
+    0 0 12px rgba(255, 210, 120, 0.7),
+    2px 2px 6px rgba(0, 0, 0, 0.9);
+
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+}
 
 /* =========================================================
    エピローグ画面
-   背景画像：background.jpg
 ========================================================= */
 
 #epilogueScreen {
   z-index: 10;
-
   display: flex;
-
   justify-content: center;
   align-items: center;
 
   background-color: #111;
-
   background-image:
     linear-gradient(
       rgba(0, 0, 0, 0.58),
@@ -307,19 +222,13 @@ button {
   background-position: center;
   background-repeat: no-repeat;
 
-  transition:
-    opacity 1s ease,
-    visibility 1s ease;
+  transition: opacity 1s ease, visibility 1s ease;
 }
 
-
-/* =========================================================
-   エピローグ背景の暗い部分
-========================================================= */
+/* エピローグ背景の暗い部分 */
 
 #epilogueScreen::before {
   content: "";
-
   position: absolute;
   inset: -5%;
 
@@ -334,25 +243,19 @@ button {
   pointer-events: none;
 }
 
-
-/* =========================================================
-   エピローグタイトル
-========================================================= */
+/* エピローグタイトル */
 
 #epilogueTitle {
   position: absolute;
-
   top: 7vh;
   left: 0;
   right: 0;
 
   text-align: center;
-
   z-index: 5;
 
   font-size: clamp(18px, 2.5vw, 28px);
   letter-spacing: 0.3em;
-
   opacity: 0.8;
 
   animation: titleFade 2s ease;
@@ -368,57 +271,40 @@ button {
   }
 }
 
-
-/* =========================================================
-   エピローグ文章表示領域
-========================================================= */
+/* エピローグ文章表示領域 */
 
 #epilogueViewport {
   position: relative;
-
   width: min(900px, 88vw);
   height: 100%;
-
   overflow: hidden;
-
   z-index: 2;
 }
 
-
-/* =========================================================
-   エピローグ文章
-========================================================= */
+/* エピローグ文章 */
 
 #epilogueText {
   position: absolute;
-
   left: 0;
   right: 0;
-
   top: 100%;
 
   padding: 30vh 4vw;
-
   text-align: center;
 
   font-size: clamp(20px, 3vw, 34px);
   line-height: 2.4;
   letter-spacing: 0.12em;
-
   white-space: pre-line;
 
   text-shadow:
     0 2px 8px rgba(0, 0, 0, 0.9),
     0 0 20px rgba(0, 0, 0, 0.7);
 
-  animation:
-    epilogueScroll 35s linear forwards;
+  animation: epilogueScroll 35s linear forwards;
 }
 
-
-/* =========================================================
-   エピローグ文章スクロール
-========================================================= */
+/* 文章を下から上へスクロール */
 
 @keyframes epilogueScroll {
   0% {
@@ -430,38 +316,27 @@ button {
   }
 }
 
-
-/* =========================================================
-   スキップ案内
-========================================================= */
+/* スキップ案内 */
 
 #skipHint {
   position: absolute;
-
-  bottom:
-    calc(4vh + env(safe-area-inset-bottom));
-
+  bottom: calc(4vh + env(safe-area-inset-bottom));
   left: 0;
   right: 0;
 
   text-align: center;
-
   z-index: 20;
 
   font-size: 14px;
   letter-spacing: 0.15em;
-
   color: rgba(255, 255, 255, 0.65);
 
   pointer-events: none;
-
-  animation:
-    hintBlink 2s ease-in-out infinite;
+  animation: hintBlink 2s ease-in-out infinite;
 }
 
 @keyframes hintBlink {
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.35;
   }
 
@@ -470,25 +345,19 @@ button {
   }
 }
 
-
 /* =========================================================
    エピローグ再表示ボタン
 ========================================================= */
 
 #epilogueButton {
   position: fixed;
-
-  right:
-    calc(24px + env(safe-area-inset-right));
-
-  bottom:
-    calc(24px + env(safe-area-inset-bottom));
+  right: calc(24px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
 
   z-index: 100;
 
   min-width: 150px;
   min-height: 58px;
-
   padding: 14px 24px;
 
   border: 1px solid rgba(255, 255, 255, 0.45);
@@ -499,7 +368,6 @@ button {
 
   font-size: 17px;
   letter-spacing: 0.1em;
-
   cursor: pointer;
 
   backdrop-filter: blur(8px);
@@ -522,25 +390,19 @@ button {
   transform: scale(0.94);
 }
 
-
 /* =========================================================
    スキップボタン
 ========================================================= */
 
 #closeEpilogueButton {
   position: absolute;
-
-  right:
-    calc(24px + env(safe-area-inset-right));
-
-  bottom:
-    calc(24px + env(safe-area-inset-bottom));
+  right: calc(24px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
 
   z-index: 30;
 
   min-width: 150px;
   min-height: 58px;
-
   padding: 14px 24px;
 
   border: 1px solid rgba(255, 255, 255, 0.45);
@@ -551,7 +413,6 @@ button {
 
   font-size: 17px;
   letter-spacing: 0.1em;
-
   cursor: pointer;
 
   backdrop-filter: blur(8px);
@@ -561,7 +422,6 @@ button {
 #closeEpilogueButton:active {
   transform: scale(0.94);
 }
-
 
 /* =========================================================
    エピローグ非表示
@@ -573,7 +433,6 @@ button {
   pointer-events: none;
 }
 
-
 /* =========================================================
    iPad 縦向き
 ========================================================= */
@@ -582,10 +441,8 @@ button {
   #epilogueText {
     width: 92%;
     margin: auto;
-
     font-size: clamp(19px, 5vw, 30px);
     line-height: 2.3;
-
     padding: 35vh 3vw;
   }
 
@@ -597,11 +454,9 @@ button {
   #closeEpilogueButton {
     min-width: 135px;
     min-height: 54px;
-
     font-size: 16px;
   }
 }
-
 
 /* =========================================================
    iPad 横向き
@@ -610,11 +465,9 @@ button {
 @media (orientation: landscape) {
   #epilogueText {
     max-width: 900px;
-
     font-size: clamp(20px, 3vw, 34px);
   }
 }
-
 
 /* =========================================================
    小さい画面
@@ -625,12 +478,10 @@ button {
   #closeEpilogueButton {
     min-width: 120px;
     min-height: 50px;
-
     padding: 10px 16px;
     font-size: 14px;
   }
 }
-
 
 /* =========================================================
    画面が低い場合
@@ -647,9 +498,8 @@ button {
   }
 }
 
-
 /* =========================================================
-   動きを減らす設定が有効な端末
+   動きを減らす設定
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {

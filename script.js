@@ -8,8 +8,6 @@ const GAME_TIME = 10 * 60;
 const EPILOGUE_DURATION = 50000;
 const EPILOGUE2_DURATION = 45000;
 
-const CORRECT_MESSAGE = "立ち入り禁止の看板をよく見ろ";
-
 
 /* HTML要素 */
 
@@ -28,6 +26,9 @@ const epilogue2Text = document.getElementById("epilogue2Text");
 const epilogue2Button = document.getElementById("epilogue2Button");
 const closeEpilogue2Button =
   document.getElementById("closeEpilogue2Button");
+
+const answerPopup = document.getElementById("answerPopup");
+const closePopupButton = document.getElementById("closePopupButton");
 
 
 /* タイマー状態 */
@@ -363,17 +364,30 @@ function isUSB(text) {
 /* 正解時の処理 */
 
 function onCorrectAnswer() {
-  voiceResult.textContent = CORRECT_MESSAGE;
-
   // 認識を停止
-  isHoldingKey = false;
   stopVoiceRecognition();
+  voiceResult.textContent = "";
+
+  // ポップアップを表示
+  answerPopup.classList.remove("hidden");
 
   // エピローグ2ボタンを表示
   epilogue2Button.classList.remove("hidden");
 
   console.log("USBを認識しました");
 }
+
+
+/* ポップアップを閉じる */
+
+function closeAnswerPopup() {
+  answerPopup.classList.add("hidden");
+}
+
+closePopupButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  closeAnswerPopup();
+});
 
 
 /* 音声認識開始 */
@@ -454,17 +468,12 @@ function handleKeyDown(event) {
 function handleKeyUp(event) {
   if (event) event.preventDefault();
 
-  // 正解表示は残す
-  const isCorrectShown = voiceResult.textContent === CORRECT_MESSAGE;
-
   if (isHoldingKey) {
     stopVoiceRecognition();
   }
 
-  // 正解表示以外は消す
-  if (!isCorrectShown) {
-    voiceResult.textContent = "";
-  }
+  // 画面上のメッセージを消す
+  voiceResult.textContent = "";
 }
 
 

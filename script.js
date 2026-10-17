@@ -1,4 +1,3 @@
-
 /* =========================================================
    脱出ゲーム メインJavaScript
 ========================================================= */
@@ -7,6 +6,9 @@
 
 const GAME_TIME = 10 * 60;
 const EPILOGUE_DURATION = 45000;
+const EPILOGUE2_DURATION = 35000;
+
+const CORRECT_MESSAGE = "立ち入り禁止の看板をよく見ろ";
 
 
 /* HTML要素 */
@@ -21,6 +23,12 @@ const closeEpilogueButton =
 const imageButton = document.getElementById("imageButton");
 const voiceResult = document.getElementById("voiceResult");
 
+const epilogue2Screen = document.getElementById("epilogue2Screen");
+const epilogue2Text = document.getElementById("epilogue2Text");
+const epilogue2Button = document.getElementById("epilogue2Button");
+const closeEpilogue2Button =
+  document.getElementById("closeEpilogue2Button");
+
 
 /* タイマー状態 */
 
@@ -29,6 +37,8 @@ let timerStarted = false;
 let timerInterval = null;
 let epilogueOpen = false;
 let epilogueTimeout = null;
+let epilogue2Open = false;
+let epilogue2Timeout = null;
 
 
 /* タイマー表示 */
@@ -159,6 +169,81 @@ epilogueScreen.addEventListener("click", (event) => {
 
 
 /* =========================================================
+   エピローグ2
+========================================================= */
+
+/* エピローグ2表示 */
+
+function showEpilogue2() {
+  if (epilogue2Timeout !== null) {
+    clearTimeout(epilogue2Timeout);
+    epilogue2Timeout = null;
+  }
+
+  // 音声認識中なら停止
+  stopVoiceRecognition();
+
+  epilogue2Screen.classList.remove("hidden");
+  epilogue2Open = true;
+
+  epilogue2Text.style.animation = "none";
+  void epilogue2Text.offsetWidth;
+
+  epilogue2Text.style.animation =
+    "epilogueScroll 30s linear forwards";
+
+  epilogue2Timeout = setTimeout(() => {
+    if (epilogue2Open) {
+      closeEpilogue2();
+    }
+  }, EPILOGUE2_DURATION);
+}
+
+
+/* エピローグ2終了（タイマーには影響しない） */
+
+function closeEpilogue2() {
+  if (!epilogue2Open) return;
+
+  epilogue2Open = false;
+
+  if (epilogue2Timeout !== null) {
+    clearTimeout(epilogue2Timeout);
+    epilogue2Timeout = null;
+  }
+
+  epilogue2Screen.classList.add("hidden");
+}
+
+
+/* エピローグ2ボタン */
+
+epilogue2Button.addEventListener("click", (event) => {
+  event.stopPropagation();
+  showEpilogue2();
+});
+
+
+/* エピローグ2を閉じるボタン */
+
+closeEpilogue2Button.addEventListener("click", (event) => {
+  event.stopPropagation();
+  closeEpilogue2();
+});
+
+
+/* エピローグ2画面のタップで閉じる */
+
+epilogue2Screen.addEventListener("click", (event) => {
+  if (closeEpilogue2Button.contains(event.target)) return;
+
+  if (epilogue2Open) {
+    closeEpilogue2();
+  }
+});
+
+
+/* =========================================================
    鍵ボタン：音声認識
 ========================================================= */
 
@@ -178,11 +263,11 @@ let recognitionRestartTimer = null;
 if (SpeechRecognitionAPI) {
   recognition = new SpeechRecognitionAPI();
 
-  // USBを英語の略語として認識させる
-  recognition.lang = "jp-US";
+  // 日本語で認識
+  recognition.lang = "ja-JP";
   recognition.continuous = true;
   recognition.interimResults = true;
-  recognition.maxAlternatives = 3;
+  recognition.maxAlternatives = 5;
 
   /* 認識結果 */
 
@@ -194,30 +279,12 @@ if (SpeechRecognitionAPI) {
 
       // 候補を順番に確認
       for (let j = 0; j < result.length; j++) {
-        const transcript = result[j].transcript
-          .trim()
-          .toUpperCase();
+        const transcript = result[j].transcript.trim();
 
         console.log("音声認識結果:", transcript);
 
-        // 句読点を取り除いて判定
-        const normalized = transcript
-          .replace(/[.,!?]/g, "")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        const recognizedUSB =
-          /\bUSB\b/.test(normalized) ||
-          /\bU\s+S\s+B\b/.test(normalized);
-
-        if (recognizedUSB) {
-          voiceResult.textContent = "USB";
-
-          // 正解を認識したら停止
-          isHoldingKey = false;
-          stopVoiceRecognition();
-
-          console.log("USBを認識しました");
+        if (isUSB(transcript)) {
+          onCorrectAnswer();
           return;
         }
       }
@@ -253,7 +320,7 @@ if (SpeechRecognitionAPI) {
     }
 
     // ボタンを押し続けている間だけ再開
-    if (isHoldingKey && !epilogueOpen) {
+    if (isHoldingKey && !epilogueOpen && !epilogue2Open) {
       recognitionRestartTimer = setTimeout(() => {
         recognitionRestartTimer = null;
         startVoiceRecognition();
@@ -268,11 +335,52 @@ if (SpeechRecognitionAPI) {
 }
 
 
+/* 「USB」と言ったかどうかを判定 */
+
+function isUSB(text) {
+  // 大文字化・全角英数字を半角に・空白と記号を除去
+  const normalized = text
+    .toUpperCase()
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) =>
+      String.fromCharCode(c.charCodeAt(0) - 0xfee0)
+    )
+    .replace(/[\s.,!?、。！？・]/g, "");
+
+  // ひらがなをカタカナに変換
+  const katakana = normalized.replace(/[\u3041-\u3096]/g, (c) =>
+    String.fromCharCode(c.charCodeAt(0) + 0x60)
+  );
+
+  return (
+    katakana.includes("USB") ||
+    katakana.includes("ユーエスビー") ||
+    katakana.includes("ユーエスビ") ||
+    katakana.includes("ユーエスビイ")
+  );
+}
+
+
+/* 正解時の処理 */
+
+function onCorrectAnswer() {
+  voiceResult.textContent = CORRECT_MESSAGE;
+
+  // 認識を停止
+  isHoldingKey = false;
+  stopVoiceRecognition();
+
+  // エピローグ2ボタンを表示
+  epilogue2Button.classList.remove("hidden");
+
+  console.log("USBを認識しました");
+}
+
+
 /* 音声認識開始 */
 
 function startVoiceRecognition() {
   if (!recognition) return;
-  if (!isHoldingKey || epilogueOpen) return;
+  if (!isHoldingKey || epilogueOpen || epilogue2Open) return;
   if (recognitionRunning) return;
 
   try {
@@ -308,7 +416,7 @@ function stopVoiceRecognition() {
 /* 鍵を押したとき */
 
 function handleKeyDown(event) {
-  if (epilogueOpen) return;
+  if (epilogueOpen || epilogue2Open) return;
 
   // マウス操作では左ボタンだけを受け付ける
   if (event.button !== undefined && event.button !== 0) {
@@ -325,7 +433,9 @@ function handleKeyDown(event) {
   }
 
   isHoldingKey = true;
-  voiceResult.textContent = "聞き取り中…";
+
+  // 表示を一旦クリア（「聞き取り中」は表示しない）
+  voiceResult.textContent = "";
 
   // start()はボタン操作から直接呼び出す
   startVoiceRecognition();
@@ -344,12 +454,15 @@ function handleKeyDown(event) {
 function handleKeyUp(event) {
   if (event) event.preventDefault();
 
-  if (!isHoldingKey) return;
+  // 正解表示は残す
+  const isCorrectShown = voiceResult.textContent === CORRECT_MESSAGE;
 
-  stopVoiceRecognition();
+  if (isHoldingKey) {
+    stopVoiceRecognition();
+  }
 
-  // 正解表示は残し、それ以外は消す
-  if (voiceResult.textContent !== "USB") {
+  // 正解表示以外は消す
+  if (!isCorrectShown) {
     voiceResult.textContent = "";
   }
 }

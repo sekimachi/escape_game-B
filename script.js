@@ -14,6 +14,7 @@ const RESET_HOLD_MS = 6000;
 // 保存用のキー
 const STORAGE_END_TIME = "escapeGame.endTime";
 const STORAGE_SOLVED = "escapeGame.solved";
+const SESSION_SHOW_EPILOGUE = "escapeGame.showEpilogue";
 
 
 /* 保存データの読み書き（保存できない環境でも止まらないようにする） */
@@ -235,7 +236,8 @@ function resetGame() {
   removeItem(STORAGE_END_TIME);
   removeItem(STORAGE_SOLVED);
 
-  location.reload();
+  // スタート画面に戻る
+  location.href = "index.html";
 }
 
 epilogueButton.addEventListener("pointerdown", startResetHold);
@@ -599,11 +601,46 @@ window.addEventListener("load", () => {
 
   updateTimer();
 
-  // ゲーム開始前（初回）だけエピローグを表示
+  // リセット直後かどうか（フラグは一度使ったら消す）
+  let forceEpilogue = false;
+
+  try {
+    forceEpilogue =
+      sessionStorage.getItem(SESSION_SHOW_EPILOGUE) === "1";
+    sessionStorage.removeItem(SESSION_SHOW_EPILOGUE);
+  } catch (error) {
+    // 無視
+  }
+
   if (!timerStarted) {
-    showEpilogue();
+    if (isReloadNavigation() && !forceEpilogue) {
+      // リロードではエピローグを流さず、そのままタイマーを開始
+      startTimer();
+    } else {
+      // スタート画面から来たとき・リセット後はエピローグを流す
+      showEpilogue();
+    }
   }
 });
+
+
+/* ページがリロードで開かれたかどうか */
+
+function isReloadNavigation() {
+  try {
+    const entries = performance.getEntriesByType("navigation");
+
+    if (entries.length > 0) {
+      return entries[0].type === "reload";
+    }
+
+    // 古いブラウザ向け
+    return performance.navigation &&
+      performance.navigation.type === 1;
+  } catch (error) {
+    return false;
+  }
+}
 
 
 /* iPad向けダブルタップズーム防止 */

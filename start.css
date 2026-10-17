@@ -1,0 +1,187 @@
+/* =========================================================
+   スタート画面
+========================================================= */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family:
+    "Noto Serif JP",
+    "Yu Mincho",
+    "Hiragino Mincho ProN",
+    "MS PMincho",
+    serif;
+  touch-action: manipulation;
+}
+
+#startScreen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12vh;
+
+  background-color: #050505;
+  background-image:
+    linear-gradient(
+      rgba(0, 0, 0, 0.55),
+      rgba(0, 0, 0, 0.75)
+    ),
+    url("background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 周囲を暗くする */
+
+#startScreen::before {
+  content: "";
+  position: absolute;
+  inset: -5%;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.15) 45%,
+      rgba(0, 0, 0, 0.65) 100%
+    );
+
+  pointer-events: none;
+}
+
+/* タイトル */
+
+#gameTitle {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+
+  font-size: clamp(44px, 10vw, 110px);
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-indent: 0.25em;
+  color: #ffe5a8;
+
+  text-shadow:
+    0 0 20px rgba(255, 210, 120, 0.55),
+    2px 2px 8px rgba(0, 0, 0, 0.9);
+
+  user-select: none;
+  animation: titleFadeIn 2s ease;
+}
+
+@keyframes titleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* スタートボタン */
+
+#startButton {
+  position: relative;
+  z-index: 2;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  min-width: 240px;
+  min-height: 68px;
+  padding: 16px 40px;
+
+  border: 1px solid rgba(255, 220, 140, 0.7);
+  border-radius: 10px;
+
+  background: rgba(40, 30, 10, 0.8);
+  color: #ffe5a8;
+
+  font-size: clamp(18px, 3vw, 24px);
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  text-decoration: none;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  animation: startButtonBlink 2.4s ease-in-out infinite;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+#startButton:hover {
+  background: rgba(70, 55, 20, 0.9);
+  border-color: rgba(255, 220, 140, 1);
+}
+
+#startButton:active {
+  transform: scale(0.95);
+}
+
+#startButton:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 3px;
+}
+
+@keyframes startButtonBlink {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  50% {
+    box-shadow:
+      0 0 24px rgba(255, 210, 120, 0.45),
+      0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* 画面が低い場合 */
+
+@media (max-height: 500px) {
+  #startScreen {
+    gap: 6vh;
+  }
+
+  #startButton {
+    min-height: 54px;
+  }
+}
+
+/* 動きを減らす設定 */
+
+@media (prefers-reduced-motion: reduce) {
+  #gameTitle,
+  #startButton {
+    animation: none;
+  }
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  >
+
+  <title>脱出ゲーム</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- カウントダウン画面 -->
+  <main id="gameScreen" class="screen">
+
+    <div id="timer">12:00</div>
+
+    <!-- 鍵の画像ボタン -->
+    <button
+      id="imageButton"
+      type="button"
+      aria-label="鍵を押して音声認識"
+    >
+      <img src="botton.png" alt="">
+    </button>
+
+    <!-- 音声認識結果 -->
+    <div id="voiceResult" aria-live="polite"></div>
+
+    <!-- エピローグ再表示 -->
+    <button id="epilogueButton" type="button">
+      エピローグ
+    </button>
+
+    <!-- エピローグ2再表示（正解後に表示） -->
+    <button id="epilogue2Button" type="button" class="hidden">
+      エピローグ2
+    </button>
+
+  </main>
+
+  <!-- エピローグ画面 -->
+  <section id="epilogueScreen" class="screen">
+
+    <div id="epilogueTitle">― EPILOGUE ―</div>
+
+    <div id="epilogueViewport">
+      <div id="epilogueText">主人公は、今大学4年生で、社会系の研究室で活動を行っている。
+
+その研究室は6人在籍しており、個々で将来がかかった大きな研究をしている。
+
+そしてその研究発表会が明日に迫っていた。
+
+しかし、研究発表直前に研究資料が入ったUSBとパソコンが何者かによって盗まれてしまう。
+
+それらを見つける手掛かりは残された暗号のみ。
+
+教授からは、「明日の発表会までに見つけ出してくれ」と言われる。
+
+主人公は、研究発表会を成功させることができるのか？
+
+プレイヤーは、研究室に残された様々な仕掛けを元にミッションをクリアしよう！</div>
+    </div>
+
+    <div id="skipHint">
+      タップするとエピローグをスキップできます
+    </div>
+
+    <button id="closeEpilogueButton" type="button">
+      スキップ
+    </button>
+
+  </section>
+
+  <!-- エピローグ2画面 -->
+  <section id="epilogue2Screen" class="screen hidden">
+
+    <div id="epilogue2Title">― EPILOGUE 2 ―</div>
+
+    <div id="epilogue2Viewport">
+      <div id="epilogue2Text">結果、それらを隠したのは同じゼミ生の一人だった。
+
+理由はその研究結果を後日自分だけの名義で発表して自分の手柄にするためであった。
+
+ただ、見つかったUSBは主人公のUSBの他に、ゼミ生全員分のUSBも混在していた。
+
+また、PCのパスワードも変更されていた。
+
+プレイヤーは、正しいUSBと正しいパスワードを導き出し、PC内に回答しよう！</div>
+    </div>
+
+    <div id="skip2Hint">
+      タップするとエピローグ2を閉じます
+    </div>
+
+    <button id="closeEpilogue2Button" type="button">
+      閉じる
+    </button>
+
+  </section>
+
+  <!-- 正解ポップアップ -->
+  <div
+    id="answerPopup"
+    class="popup-overlay hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="popupMessage"
+  >
+    <div class="popup-box">
+      <button
+        id="closePopupButton"
+        type="button"
+        aria-label="閉じる"
+      >✖</button>
+      <p id="popupMessage">立ち入り禁止の看板をよく見ろ</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

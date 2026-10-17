@@ -8,6 +8,40 @@ const GAME_TIME = 10 * 60;
 const EPILOGUE_DURATION = 50000;
 const EPILOGUE2_DURATION = 45000;
 
+// エピローグボタンを押し続けてリセットするまでの時間
+const RESET_HOLD_MS = 6000;
+
+// 保存用のキー
+const STORAGE_END_TIME = "escapeGame.endTime";
+const STORAGE_SOLVED = "escapeGame.solved";
+
+
+/* 保存データの読み書き（保存できない環境でも止まらないようにする） */
+
+function saveItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.log("保存できません:", error);
+  }
+}
+
+function loadItem(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    return null;
+  }
+}
+
+function removeItem(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    // 無視
+  }
+}
+
 
 /* HTML要素 */
 
@@ -40,6 +74,19 @@ let epilogueOpen = false;
 let epilogueTimeout = null;
 let epilogue2Open = false;
 let epilogue2Timeout = null;
+
+// 制限時間が終わる時刻（ミリ秒）。リロードしても残り時間を保てる
+let endTime = null;
+
+// 終了時刻から残り秒数を計算
+function syncRemainingTime() {
+  if (endTime === null) return;
+
+  remainingTime = Math.max(
+    0,
+    Math.ceil((endTime - Date.now()) / 1000)
+  );
+}
 
 
 /* タイマー表示 */
@@ -74,13 +121,21 @@ function startTimer() {
   if (timerStarted) return;
 
   timerStarted = true;
+
+  // 初回開始時だけ終了時刻を決めて保存する
+  if (endTime === null) {
+    endTime = Date.now() + remainingTime * 1000;
+    saveItem(STORAGE_END_TIME, String(endTime));
+  }
+
+  syncRemainingTime();
   updateTimer();
 
   timerInterval = setInterval(() => {
-    if (remainingTime > 0) {
-      remainingTime--;
-      updateTimer();
-    } else {
+    syncRemainingTime();
+    updateTimer();
+
+    if (remainingTime <= 0) {
       stopTimer();
     }
   }, 1000);
@@ -148,6 +203,45 @@ epilogueButton.addEventListener("click", (event) => {
   event.stopPropagation();
   showEpilogue();
 });
+
+
+/* エピローグボタンを6秒間押し続けるとリセット */
+
+let resetHoldTimer = null;
+
+function startResetHold(event) {
+  // マウス操作では左ボタンだけを受け付ける
+  if (event.button !== undefined && event.button !== 0) return;
+
+  cancelResetHold();
+
+  resetHoldTimer = setTimeout(() => {
+    resetHoldTimer = null;
+    resetGame();
+  }, RESET_HOLD_MS);
+}
+
+function cancelResetHold() {
+  if (resetHoldTimer !== null) {
+    clearTimeout(resetHoldTimer);
+    resetHoldTimer = null;
+  }
+}
+
+function resetGame() {
+  stopTimer();
+
+  // 保存データを消して最初の状態に戻す
+  removeItem(STORAGE_END_TIME);
+  removeItem(STORAGE_SOLVED);
+
+  location.reload();
+}
+
+epilogueButton.addEventListener("pointerdown", startResetHold);
+epilogueButton.addEventListener("pointerup", cancelResetHold);
+epilogueButton.addEventListener("pointerleave", cancelResetHold);
+epilogueButton.addEventListener("pointercancel", cancelResetHold);
 
 
 /* スキップボタン */
@@ -371,8 +465,9 @@ function onCorrectAnswer() {
   // ポップアップを表示
   answerPopup.classList.remove("hidden");
 
-  // エピローグ2ボタンを表示
+  // エピローグ2ボタンを表示（リロード後も残す）
   epilogue2Button.classList.remove("hidden");
+  saveItem(STORAGE_SOLVED, "1");
 
   console.log("USBを認識しました");
 }
@@ -488,8 +583,26 @@ imageButton.addEventListener("lostpointercapture", handleKeyUp);
 /* ページ読み込み */
 
 window.addEventListener("load", () => {
+  // 保存されたタイマーを復元
+  const savedEndTime = Number(loadItem(STORAGE_END_TIME));
+
+  if (savedEndTime > 0) {
+    endTime = savedEndTime;
+    syncRemainingTime();
+    startTimer();
+  }
+
+  // 正解済みならエピローグ2ボタンを表示
+  if (loadItem(STORAGE_SOLVED) === "1") {
+    epilogue2Button.classList.remove("hidden");
+  }
+
   updateTimer();
-  showEpilogue();
+
+  // ゲーム開始前（初回）だけエピローグを表示
+  if (!timerStarted) {
+    showEpilogue();
+  }
 });
 
 

@@ -380,6 +380,12 @@ button {
     border-color 0.2s ease;
 }
 
+#epilogueButton {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
 #epilogueButton:hover {
   background: rgba(60, 60, 60, 0.85);
   border-color: rgba(255, 255, 255, 0.8);

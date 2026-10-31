@@ -11,6 +11,9 @@ const EPILOGUE2_DURATION = 45000;
 // エピローグボタンを押し続けてリセットするまでの時間
 const RESET_HOLD_MS = 6000;
 
+// 鍵を押してから音声認識を続ける時間
+const VOICE_LISTEN_MS = 3000;
+
 // 保存用のキー
 const STORAGE_END_TIME = "escapeGame.endTime";
 const STORAGE_SOLVED = "escapeGame.solved";
@@ -341,7 +344,7 @@ epilogue2Screen.addEventListener("click", (event) => {
 
 
 /* =========================================================
-   鍵ボタン：音声認識
+   鍵ボタン：音声認識（押してから3秒間）
 ========================================================= */
 
 // SafariやChromeが提供する音声認識APIを取得
@@ -350,9 +353,10 @@ const SpeechRecognitionAPI =
   window.webkitSpeechRecognition;
 
 let recognition = null;
-let isHoldingKey = false;
+let isHoldingKey = false;       // 「認識中」フラグとして使う
 let recognitionRunning = false;
 let recognitionRestartTimer = null;
+let listenTimeout = null;       // 3秒タイマー
 
 
 /* 音声認識の準備 */
@@ -398,7 +402,7 @@ if (SpeechRecognitionAPI) {
       event.error === "service-not-allowed"
     ) {
       voiceResult.textContent = "マイクを許可してください";
-      isHoldingKey = false;
+      stopVoiceRecognition();
     } else if (event.error === "no-speech") {
       console.log("音声が検出されませんでした");
     } else if (event.error === "network") {
@@ -416,7 +420,7 @@ if (SpeechRecognitionAPI) {
       recognitionRestartTimer = null;
     }
 
-    // ボタンを押し続けている間だけ再開
+    // 3秒以内に認識が途切れた場合は再開
     if (isHoldingKey && !epilogueOpen && !epilogue2Open) {
       recognitionRestartTimer = setTimeout(() => {
         recognitionRestartTimer = null;
@@ -460,7 +464,7 @@ function isUSB(text) {
 /* 正解時の処理 */
 
 function onCorrectAnswer() {
-  // 認識を停止
+  // 認識を停止（3秒タイマーも解除される）
   stopVoiceRecognition();
   voiceResult.textContent = "";
 
@@ -509,6 +513,11 @@ function startVoiceRecognition() {
 function stopVoiceRecognition() {
   isHoldingKey = false;
 
+  if (listenTimeout !== null) {
+    clearTimeout(listenTimeout);
+    listenTimeout = null;
+  }
+
   if (recognitionRestartTimer !== null) {
     clearTimeout(recognitionRestartTimer);
     recognitionRestartTimer = null;
@@ -524,7 +533,7 @@ function stopVoiceRecognition() {
 }
 
 
-/* 鍵を押したとき */
+/* 鍵を押したとき（押した瞬間から3秒間だけ認識する） */
 
 function handleKeyDown(event) {
   if (epilogueOpen || epilogue2Open) return;
@@ -536,10 +545,14 @@ function handleKeyDown(event) {
 
   event.preventDefault();
 
+  // すでに認識中なら何もしない（連打防止）
   if (isHoldingKey) return;
 
   if (!recognition) {
     voiceResult.textContent = "音声認識に非対応";
+    setTimeout(() => {
+      voiceResult.textContent = "";
+    }, 2000);
     return;
   }
 
@@ -551,35 +564,19 @@ function handleKeyDown(event) {
   // start()はボタン操作から直接呼び出す
   startVoiceRecognition();
 
-  // 指がボタンから外れても離した操作を検出する
-  try {
-    imageButton.setPointerCapture(event.pointerId);
-  } catch (error) {
-    // 非対応の場合は無視
-  }
-}
-
-
-/* 鍵を離したとき */
-
-function handleKeyUp(event) {
-  if (event) event.preventDefault();
-
-  if (isHoldingKey) {
+  // 3秒たったら自動で停止
+  listenTimeout = setTimeout(() => {
+    listenTimeout = null;
     stopVoiceRecognition();
-  }
-
-  // 画面上のメッセージを消す
-  voiceResult.textContent = "";
+    voiceResult.textContent = "";
+    console.log("3秒経過：音声認識を終了");
+  }, VOICE_LISTEN_MS);
 }
 
 
-/* マウス・タッチ・ペン操作 */
+/* マウス・タッチ・ペン操作（離しても3秒間は認識を続ける） */
 
 imageButton.addEventListener("pointerdown", handleKeyDown);
-imageButton.addEventListener("pointerup", handleKeyUp);
-imageButton.addEventListener("pointercancel", handleKeyUp);
-imageButton.addEventListener("lostpointercapture", handleKeyUp);
 
 
 /* ページ読み込み */

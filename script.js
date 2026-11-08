@@ -4,7 +4,7 @@
 
 /* 設定 */
 
-const GAME_TIME = 13 * 60;
+const GAME_TIME = 16 * 60;
 const EPILOGUE_DURATION = 50000;
 const EPILOGUE2_DURATION = 45000;
 
